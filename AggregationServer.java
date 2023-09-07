@@ -15,8 +15,10 @@ public class AggregationServer {
 
         System.out.println("Starting aggregation server on port: " + port);
 
-        try (serverSocket = new ServerSocket(port)) {
+        try {
             
+            serverSocket = new ServerSocket(port);
+
             while (true) {
 
                 try {
@@ -35,7 +37,7 @@ public class AggregationServer {
 
                         System.out.println("Client: " + msg);
 
-                        bufferedWriter.write("MSG received!")
+                        bufferedWriter.write("MSG received!");
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
 

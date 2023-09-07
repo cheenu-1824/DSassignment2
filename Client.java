@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.Scanner;
 
 public class Client {
     public static void main(String[] args) {
@@ -10,8 +11,8 @@ public class Client {
         BufferedReader bufferedReader = null;
         BufferedWriter bufferedWriter = null;
         Scanner scanner = null;
-        int port = 9999;
         String serverAddress = "localhost";
+        int port = 9999;
 
         try {
 
@@ -41,6 +42,7 @@ public class Client {
             }
 
         } catch (IOException e){
+            System.out.println("Connection to aggregation server was lost...");
             e.printStackTrace();
 
         } finally {
@@ -64,6 +66,7 @@ public class Client {
                 }
 
             } catch (IOException e){
+                System.out.println("Error occured when closing objects...");
                 e.printStackTrace();
 
             }
