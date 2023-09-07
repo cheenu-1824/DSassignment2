@@ -4,7 +4,7 @@
 JAVAC = javac
 
 # List of source files
-SOURCES = AggregationServer.java
+SOURCES = AggregationServer.java Client.java
 CLASSES = $(SOURCES:.java=.class)
 all: compile
 
@@ -18,12 +18,12 @@ clean:
 aggregationServer: AggregationServer.class
 	java AggregationServer
 
+# Run the client
+client: Client.class
+	java Client
+
 # Run the content server
 #contentServer: ContentServer.class
 #	java ContentServer
 
-# Run the client
-#client: Client.class
-#	java Client
-
-.PHONY: all compile clean aggregationServer #contentServer client
+.PHONY: all compile clean aggregationServer client #contentServer
