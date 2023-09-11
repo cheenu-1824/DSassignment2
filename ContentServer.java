@@ -40,7 +40,21 @@ public class ContentServer {
         return stringBuilder.toString();
     }
 
-    public static WeatherObject buildWeatherObject(String file) {
+    public static WeatherObject buildWeatherObject(String input) {
+
+        String[] lines = input.split("\n");
+
+        for (String line : lines) {
+            
+            String[] objectParts = line.split(":");
+
+            String parameter = objectParts[0].trim();
+            String value = objectParts[1].trim();
+
+        }
+
+
+
         WeatherObject weather = new WeatherObject();
         weather.setId("IDS60901");
         weather.setName("Adelaide (West Terrace / ngayirdapira)");
