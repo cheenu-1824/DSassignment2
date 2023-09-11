@@ -67,10 +67,11 @@ public class ContentServer {
 
         try {
 
+            // Read file from file system
             String content = readFile(filename);
             System.out.println(content);
 
-
+            // Establish connection to aggregation server
             socket = new Socket(serverAddress, port);
 
 
