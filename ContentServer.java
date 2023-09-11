@@ -41,26 +41,26 @@ public class ContentServer {
     }
 
     public static WeatherObject buildWeatherObject(String file) {
-        WeatherObject weatherObject = new WeatherObject();
-        weatherObject.setId("IDS60901");
-        weatherObject.setName("Adelaide (West Terrace / ngayirdapira)");
-        weatherObject.setState("SA");
-        weatherObject.setTimeZone("CST");
-        weatherObject.setLatitude(-34.9);
-        weatherObject.setLongitude(138.6);
-        weatherObject.setLocalDateTime("15/04:00pm");
-        weatherObject.setLocalDateTimeFull("20230715160000");
-        weatherObject.setAirTemperature(13.3);
-        weatherObject.setApparentTemperature(9.5);
-        weatherObject.setCloud("Partly cloudy");
-        weatherObject.setDewPoint(5.7);
-        weatherObject.setPressure(1023.9);
-        weatherObject.setRelativeHumidity(60);
-        weatherObject.setWindDirection("S");
-        weatherObject.setWindSpeedKmh(15);
-        weatherObject.setWindSpeedKt(8);
+        WeatherObject weather = new WeatherObject();
+        weather.setId("IDS60901");
+        weather.setName("Adelaide (West Terrace / ngayirdapira)");
+        weather.setState("SA");
+        weather.setTime_zone("CST");
+        weather.setLat(-34.9);
+        weather.setLon(138.6);
+        weather.setLocal_date_time("15/04:00pm");
+        weather.setLocal_date_time_full("20230715160000");
+        weather.setAir_temp(13.3);
+        weather.setApparent_t(9.5);
+        weather.setCloud("Partly cloudy");
+        weather.setDewpt(5.7);
+        weather.setPress(1023.9);
+        weather.setRel_hum(60);
+        weather.setWind_dir("S");
+        weather.setWind_spd_kmh(15);
+        weather.setWind_spd_kt(8);
 
-        return weatherObject;
+        return weather;
     }
 
 
