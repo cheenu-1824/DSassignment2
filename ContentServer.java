@@ -1,6 +1,10 @@
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
+import java.util.Map;
+
+import com.google.gson.Gson;
+
 
 public class ContentServer {
 
@@ -36,6 +40,29 @@ public class ContentServer {
         return stringBuilder.toString();
     }
 
+    public static WeatherObject buildWeatherObject(String file) {
+        WeatherObject weatherObject = new WeatherObject();
+        weatherObject.setId("IDS60901");
+        weatherObject.setName("Adelaide (West Terrace / ngayirdapira)");
+        weatherObject.setState("SA");
+        weatherObject.setTimeZone("CST");
+        weatherObject.setLatitude(-34.9);
+        weatherObject.setLongitude(138.6);
+        weatherObject.setLocalDateTime("15/04:00pm");
+        weatherObject.setLocalDateTimeFull("20230715160000");
+        weatherObject.setAirTemperature(13.3);
+        weatherObject.setApparentTemperature(9.5);
+        weatherObject.setCloud("Partly cloudy");
+        weatherObject.setDewPoint(5.7);
+        weatherObject.setPressure(1023.9);
+        weatherObject.setRelativeHumidity(60);
+        weatherObject.setWindDirection("S");
+        weatherObject.setWindSpeedKmh(15);
+        weatherObject.setWindSpeedKt(8);
+
+        return weatherObject;
+    }
+
 
     public static void main(String[] args) {
         
@@ -54,6 +81,7 @@ public class ContentServer {
             System.exit(1);
         }
 
+        // Parse URL in domain and port
         String[] splitURL = parseURL(args[0]);
         serverAddress = splitURL[0];
         port = Integer.parseInt(splitURL[1]);
@@ -64,12 +92,21 @@ public class ContentServer {
         System.out.println(port);
         System.out.println(filename);
 
+        // Read file from file system
+        String content = readFile(filename);
+        System.out.println(content);
+
+        // Build objects for each entry in content
+
+
+        // Parse string to json
+        //Gson gson = new Gson();
+
+        //Map<String, Object> map = gson.fromJson(content, Map.class);
+        //System.out.println(map);
+
 
         try {
-
-            // Read file from file system
-            String content = readFile(filename);
-            System.out.println(content);
 
             // Establish connection to aggregation server
             socket = new Socket(serverAddress, port);
