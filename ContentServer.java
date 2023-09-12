@@ -8,6 +8,15 @@ import com.google.gson.Gson;
 
 public class ContentServer {
 
+    public static void menu() {
+        
+        System.out.println("<=====Content Server Menu=====>");
+        System.out.println("1) Shutdown content server");
+        System.out.println("2) IDK");
+
+
+    }
+
     public static String[] parseURL(String url) {
         String[] splitURL = url.split(":");
     
@@ -167,14 +176,18 @@ public class ContentServer {
         }
 
         // Build objects for each entry in content
-        WeatherObject weather1 = buildWeatherObject(content);
+        WeatherObject[] weathers = new WeatherObject[weatherData.length];
+        for (int i = 0; i < weatherData.length; i++) {
+            weathers[i] = buildWeatherObject(weatherData[i]);
+        }
 
         // Serializes object to JSON string
         Gson gson = new Gson();
-        String json = gson.toJson(weather1);
-        System.out.println(json);
-
-
+        String[] json = new String[weatherData.length];
+        for (int i = 0; i < weatherData.length; i++) {
+            json[i] = gson.toJson(weathers[i]);
+            System.out.println(json[i]);
+        }
 
         try {
 
