@@ -11,7 +11,7 @@ public class AggregationServer {
         BufferedReader bufferedReader = null;
         BufferedWriter bufferedWriter = null;
         String serverAddress = "localhost";
-        int port = 9999;
+        int port = 4567;
 
         System.out.println("Starting aggregation server on port: " + port);
 
@@ -41,6 +41,11 @@ public class AggregationServer {
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
 
+
+
+
+
+
                         if (msg.equalsIgnoreCase("BYE")){
                             break;
                         }
@@ -59,7 +64,6 @@ public class AggregationServer {
 
         } catch (IOException e) {
             System.out.println("Aggregation server could not listen on port: " + port);
-            System.exit(-1);
         }
     }
 }
