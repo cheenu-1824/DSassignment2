@@ -185,15 +185,8 @@ public class ContentServer {
         // Remove invalid entries
         weatherData = removeInvalidWeather(weatherData);
 
-
-        for (String weather : weatherData) {
-            System.out.println(weather);
-            System.out.println("\n");
-        }
-
         // Build objects for each entry in content
         List<WeatherObject> weathers = new ArrayList<>();
-
         for (String weather : weatherData) {
             weathers.add(buildWeatherObject(weather));
         }
