@@ -13,9 +13,10 @@ public class ContentServer {
 
     public static void menu() {
         
-        System.out.println("<=====Content Server Menu=====>");
-        System.out.println("1) Shutdown content server");
-        System.out.println("2) IDK");
+        System.out.println("<===Content Server Menu===>");
+        System.out.println("1) Change heartbeat rate");
+        System.out.println("2) Shutdown content server");
+        System.out.println("<=========================>");
 
 
     }
@@ -147,7 +148,7 @@ public class ContentServer {
         return weatherData;
     }
 
-    public static void putReq(List<String> json) {
+    public static void putReq(BufferedWriter bufferedWriter, List<String> json) {
 
         // Get content length
         int contentLength = 0;
@@ -164,6 +165,17 @@ public class ContentServer {
         }
 
         System.out.println(putMessage);
+
+        try {
+
+            bufferedWriter.write(putMessage);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+
+        } catch (IOException e ){
+            System.out.println("Error: Failed to send PUT request the the server...");
+        } 
+
     }
 
     public static void main(String[] args) {
@@ -183,20 +195,15 @@ public class ContentServer {
             System.exit(1);
         }
 
-        // Parse URL in domain and port
+        // Parse URL in server address and port
         String[] splitURL = parseURL(args[0]);
         serverAddress = splitURL[0];
         port = Integer.parseInt(splitURL[1]);
         filename = args[1];
 
-
-        System.out.println(serverAddress);
-        System.out.println(port);
-        System.out.println(filename);
-
         // Read file from file system
         String content = readFile(filename);
-        System.out.println(content);
+        //System.out.println(content);
 
         // Split file into seperate entries
         List<String> weatherData = splitWeatherData(content);
@@ -233,8 +240,7 @@ public class ContentServer {
 
             
             // Send put request
-            putReq(json);
-
+            putReq(bufferedWriter, json);
 
             while (true) {
                 
