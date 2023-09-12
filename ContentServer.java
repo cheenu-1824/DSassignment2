@@ -1,7 +1,10 @@
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
-import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 
 import com.google.gson.Gson;
 
@@ -120,19 +123,29 @@ public class ContentServer {
         return weather;
     }
 
-    public static String[] splitWeatherData(String input) {
-
+    public static List<String> splitWeatherData(String input) {
         String[] weatherData = input.split("id:");
-
-        String[] formattedWeatherData = new String[weatherData.length - 1];
-
+    
+        List<String> formattedWeatherData = new ArrayList<>();
+    
         for (int i = 1; i < weatherData.length; i++) {
-            formattedWeatherData[i - 1] = "id:" + weatherData[i].trim();
+            formattedWeatherData.add("id:" + weatherData[i].trim());
         }
     
         return formattedWeatherData;
     }
 
+    public static List<String> removeInvalidWeather(List<String> weatherData) {
+        Iterator<String> iterator = weatherData.iterator();
+        while (iterator.hasNext()) {
+            String entry = iterator.next();
+            if (entry.contains("id:name")) { // THIS MAY NOT BE RIGHT, DEPENDS IF ERROR ID MEANS ID FIELD IS BLANK
+                iterator.remove();
+            }
+        }
+
+        return weatherData;
+    }
 
     public static void main(String[] args) {
         
@@ -167,26 +180,30 @@ public class ContentServer {
         System.out.println(content);
 
         // Split file into seperate entries
-        String[] weatherData = splitWeatherData(content);
+        List<String> weatherData = splitWeatherData(content);
 
-        for (int i = 0; i < weatherData.length; i++) {
-            System.out.println(weatherData[i]);
+        // Remove invalid entries
+        weatherData = removeInvalidWeather(weatherData);
+
+
+        for (String weather : weatherData) {
+            System.out.println(weather);
             System.out.println("\n");
-
         }
 
         // Build objects for each entry in content
-        WeatherObject[] weathers = new WeatherObject[weatherData.length];
-        for (int i = 0; i < weatherData.length; i++) {
-            weathers[i] = buildWeatherObject(weatherData[i]);
+        List<WeatherObject> weathers = new ArrayList<>();
+
+        for (String weather : weatherData) {
+            weathers.add(buildWeatherObject(weather));
         }
 
         // Serializes object to JSON string
         Gson gson = new Gson();
-        String[] json = new String[weatherData.length];
-        for (int i = 0; i < weatherData.length; i++) {
-            json[i] = gson.toJson(weathers[i]);
-            System.out.println(json[i]);
+        List<String> json = new ArrayList<>();
+        for (WeatherObject weather : weathers) {
+            json.add(gson.toJson(weather));
+            System.out.println(gson.toJson(weather));
         }
 
         try {
