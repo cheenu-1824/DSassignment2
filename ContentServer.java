@@ -151,6 +151,8 @@ public class ContentServer {
         // Serializes object to JSON string
         Gson gson = new Gson();
         String json = gson.toJson(weather1);
+        System.out.println(json);
+
 
 
         //Map<String, Object> map = gson.fromJson(content, Map.class);
