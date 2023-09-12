@@ -157,10 +157,10 @@ public class ContentServer {
 
         String putMessage = "PUT /weather.json HTTP/1.1\r\n"
                     + "User-Agent: ATOMClient/1/0\r\n"
-                    + "Content-Type: application/json\r\n"
-                    + "Content-Length: " + contentLength +"\r\n\r\n"; // Replace with the actual content length
+                    + "Content-Type: application/json\r\n" // I NEED TO WORK THIS OUT
+                    + "Content-Length: " + contentLength +"\r\n\r";
         for (String entry : json) {
-            putMessage += entry; 
+            putMessage += "\n" + entry; 
         }
 
         System.out.println(putMessage);
