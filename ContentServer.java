@@ -187,7 +187,7 @@ public class ContentServer {
         BufferedWriter bufferedWriter = null;
         Scanner scanner = null;
         String serverAddress = "localhost";
-        int port = 9999;
+        int port = 4567;
         String filename = "content/test.txt";
 
         if (args.length != 2){
