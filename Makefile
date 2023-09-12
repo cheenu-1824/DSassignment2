@@ -1,32 +1,20 @@
 # Makefile for Assignmen2
 
 # Set the Java compiler and options
-JAVAC = javac -cp .:lib/gson-2.10.1.jar
+JAVAC = javac
 
-# List of source files
-SOURCES = AggregationServer.java GETClient.java ContentServer.java
-CLASSES = $(SOURCES:.java=.class)
-all: compile
+# Classpath variable for libraries
+LIB = -cp "lib/gson-2.10.1.jar"
 
-# Command-line arguments
-GETCLIENT_ARGS = arg1 arg2 arg3 arg4
+# Variable for the .java files
+SOURCES = $(wildcard *.java)
 
-compile: $(SOURCES)
-	$(JAVAC) $(SOURCES)
+# Default make
+all:
+	$(JAVAC) $(LIB) $(SOURCES)
 
+# Cleanup class files
 clean:
 	rm -f *.class
 
-# Run the aggregation server
-aggregationServer: AggregationServer.class
-	java AggregationServer
-
-# Run the client
-client: GETClient.class
-	java GETClient  
-
-# Run the content server
-contentServer: ContentServer.class
-	java ContentServer 
-
-.PHONY: all compile clean aggregationServer client contentServer
+.PHONY: all clean
