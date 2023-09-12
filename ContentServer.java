@@ -111,6 +111,19 @@ public class ContentServer {
         return weather;
     }
 
+    public static String[] splitWeatherData(String input) {
+
+        String[] weatherData = input.split("id:");
+
+        String[] formattedWeatherData = new String[weatherData.length - 1];
+
+        for (int i = 1; i < weatherData.length; i++) {
+            formattedWeatherData[i - 1] = "id:" + weatherData[i].trim();
+        }
+    
+        return formattedWeatherData;
+    }
+
 
     public static void main(String[] args) {
         
@@ -144,19 +157,23 @@ public class ContentServer {
         String content = readFile(filename);
         System.out.println(content);
 
+        // Split file into seperate entries
+        String[] weatherData = splitWeatherData(content);
+
+        for (int i = 0; i < weatherData.length; i++) {
+            System.out.println(weatherData[i]);
+            System.out.println("\n");
+
+        }
+
         // Build objects for each entry in content
         WeatherObject weather1 = buildWeatherObject(content);
-        System.out.println(weather1);
 
         // Serializes object to JSON string
         Gson gson = new Gson();
         String json = gson.toJson(weather1);
         System.out.println(json);
 
-
-
-        //Map<String, Object> map = gson.fromJson(content, Map.class);
-        //System.out.println(map);
 
 
         try {
