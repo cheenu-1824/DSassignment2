@@ -147,6 +147,19 @@ public class ContentServer {
         return weatherData;
     }
 
+    public static void putReq(List<String> json) {
+
+        String putMessage = "PUT /weather.json HTTP/1.1\r\n"
+                    + "User-Agent: ATOMClient/1/0\r\n"
+                    + "Content-Type: application/json\r\n"
+                    + "Content-Length: 123\r\n\r\n"; // Replace with the actual content length
+        for (String entry : json) {
+            putMessage += entry; 
+        }
+
+        System.out.println(putMessage);
+    }
+
     public static void main(String[] args) {
         
         Socket socket = null;
@@ -196,14 +209,13 @@ public class ContentServer {
         List<String> json = new ArrayList<>();
         for (WeatherObject weather : weathers) {
             json.add(gson.toJson(weather));
-            System.out.println(gson.toJson(weather));
+            //System.out.println(gson.toJson(weather));
         }
 
         try {
 
             // Establish connection to aggregation server
             socket = new Socket(serverAddress, port);
-
 
             inputStreamReader = new InputStreamReader(socket.getInputStream());
             outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
@@ -212,6 +224,11 @@ public class ContentServer {
             bufferedWriter = new BufferedWriter(outputStreamWriter);
 
             scanner = new Scanner(System.in);
+
+            
+            // Send put request
+            putReq(json);
+
 
             while (true) {
                 
