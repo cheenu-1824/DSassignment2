@@ -2,6 +2,24 @@ import java.net.*;
 import java.io.*;
 
 public class AggregationServer {
+
+    public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
+
+        System.out.println("PUT: " + msg);
+        
+        try {
+    
+            bufferedWriter.write("PUT request received!");
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+    
+        } catch (IOException e) {
+            System.out.println("Error: Failed to send PUT response...");
+        }
+    
+    }
+
+
     public static void main(String[] args) {
 
         Socket socket = null;
@@ -35,11 +53,17 @@ public class AggregationServer {
 
                         String msg = bufferedReader.readLine();
 
-                        System.out.println("Client: " + msg);
+                        // Make this into a function which uses switch statement
+                        if (msg.contains("PUT")){
+                            handlePutReq(bufferedWriter, msg);
+                        } else {
+                            System.out.println("Client: " + msg);
 
-                        bufferedWriter.write("MSG received!");
-                        bufferedWriter.newLine();
-                        bufferedWriter.flush();
+                            bufferedWriter.write("MSG received!");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+
+                        }
 
 
 
