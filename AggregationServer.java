@@ -1,44 +1,86 @@
 import java.net.*;
 import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
+
+import com.google.gson.Gson;
+
 
 public class AggregationServer {
 
     public static String buildMsg(BufferedReader bufferedReader) {
         StringBuilder content = new StringBuilder();
         try {
+            boolean isContent = false;
             while (true) {
                 String line = bufferedReader.readLine();
-                if (line == null || line.isEmpty()) {
-                    break;
+                if (line.isEmpty()) {
+                    if (isContent == true){
+                        break;
+                    } else {
+                        isContent = true;
+                    }
                 }
                 content.append(line).append("\n");
             }
         } catch (IOException e) {
             System.out.println("Error: Failed to build request into a string...");
         }
-
-        return content.toString();
+        return content.toString().trim();
     }
+
+    public static String getBody(String msg) {
+        int contentIndex = msg.indexOf("{");
+        if (contentIndex != -1) {
+            String requestBody = msg.substring(contentIndex);
+            return requestBody;
+        } else {
+            System.out.println("Error: No content found in the body of the request...");
+            return null;
+        }
+    }
+    
+    public static List<String> splitJson(String msg) {
+        String[] weatherData = msg.split("\\n");
+        List<String> json = new ArrayList<>();
+    
+        for (String weather : weatherData) {
+            weather = weather.trim();
+            if (!weather.isEmpty()) {
+                json.add(weather);
+            }
+        }
+    
+        return json;
+    }    
 
     public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {
         
         
         try {
-            switch (msg.substring(0, 3)) {
-                case "PUT":
-                    msg = buildMsg(bufferedReader);
-                    handlePutReq(bufferedWriter, msg);
-                    break;
-                case "GET":
-                    break;
-                default:
-                    System.out.println("Client: " + msg);
-    
-                    bufferedWriter.write("MSG received!");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                    break;
+            if (msg.length() < 3) {
+                System.out.println("Error: Request receieved was too short...");
+                bufferedWriter.write("Error: Request too short, please try again...");
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+            } else {
+                switch (msg.substring(0, 3)) {
+                    case "PUT":
+                        msg = buildMsg(bufferedReader);
+                        handlePutReq(bufferedWriter, msg);
+                        break;
+                    case "GET":
+                        break;
+                    default:
+                        System.out.println("Client: " + msg);
+        
+                        bufferedWriter.write("MSG received!");
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+                        break;
+                }
             }
+
         } catch (IOException e) {
             System.out.println("Error: Failed to handle req properly...");
         }
@@ -54,6 +96,16 @@ public class AggregationServer {
             bufferedWriter.write("PUT request received!");
             bufferedWriter.newLine();
             bufferedWriter.flush();
+
+            Gson gson = new Gson();
+
+            List<String> json = splitJson(getBody(msg));
+            List<WeatherObject> weatherData = new ArrayList<>();
+            
+            for (String entry : json) {
+                weatherData.add(gson.fromJson(entry, WeatherObject.class));
+            }
+
     
         } catch (IOException e) {
             System.out.println("Error: Failed to send PUT response...");
@@ -95,13 +147,12 @@ public class AggregationServer {
 
                         String msg = bufferedReader.readLine();
 
-                        // Handle requests "GET", "PUT"
-                        handleReq(bufferedReader, bufferedWriter, msg);
-
-
                         if (msg.equalsIgnoreCase("BYE")){
                             break;
                         }
+
+                        // Handle requests "GET", "PUT"
+                        handleReq(bufferedReader, bufferedWriter, msg);
                     }
 
                     socket.close();
