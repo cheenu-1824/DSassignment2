@@ -3,9 +3,26 @@ import java.io.*;
 
 public class AggregationServer {
 
+    public static String buildMsg(BufferedReader bufferedReader) {
+        StringBuilder content = new StringBuilder();
+        try {
+            while (true) {
+                String line = bufferedReader.readLine();
+                if (line == null || line.isEmpty()) {
+                    break;
+                }
+                content.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            System.out.println("Error: Failed to build request into a string...");
+        }
+
+        return content.toString();
+    }
+
     public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
-        System.out.println("PUT: " + msg);
+        System.out.println("PUT request:\n" + msg);
         
         try {
     
@@ -55,6 +72,8 @@ public class AggregationServer {
 
                         // Make this into a function which uses switch statement
                         if (msg.contains("PUT")){
+                
+                            msg = buildMsg(bufferedReader);
                             handlePutReq(bufferedWriter, msg);
                         } else {
                             System.out.println("Client: " + msg);
