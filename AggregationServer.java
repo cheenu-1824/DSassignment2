@@ -20,6 +20,31 @@ public class AggregationServer {
         return content.toString();
     }
 
+    public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {
+        
+        
+        try {
+            switch (msg.substring(0, 3)) {
+                case "PUT":
+                    msg = buildMsg(bufferedReader);
+                    handlePutReq(bufferedWriter, msg);
+                    break;
+                case "GET":
+                    break;
+                default:
+                    System.out.println("Client: " + msg);
+    
+                    bufferedWriter.write("MSG received!");
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                    break;
+            }
+        } catch (IOException e) {
+            System.out.println("Error: Failed to handle req properly...");
+        }
+
+    }
+
     public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
         System.out.println("PUT request:\n" + msg);
@@ -70,23 +95,8 @@ public class AggregationServer {
 
                         String msg = bufferedReader.readLine();
 
-                        // Make this into a function which uses switch statement
-                        if (msg.contains("PUT")){
-                
-                            msg = buildMsg(bufferedReader);
-                            handlePutReq(bufferedWriter, msg);
-                        } else {
-                            System.out.println("Client: " + msg);
-
-                            bufferedWriter.write("MSG received!");
-                            bufferedWriter.newLine();
-                            bufferedWriter.flush();
-
-                        }
-
-
-
-
+                        // Handle requests "GET", "PUT"
+                        handleReq(bufferedReader, bufferedWriter, msg);
 
 
                         if (msg.equalsIgnoreCase("BYE")){
