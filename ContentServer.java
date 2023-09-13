@@ -241,6 +241,7 @@ public class ContentServer {
             
             // Send put request
             putReq(bufferedWriter, json);
+            System.out.println("Server: " + bufferedReader.readLine());
 
             while (true) {
                 
