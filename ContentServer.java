@@ -163,7 +163,7 @@ public class ContentServer {
         for (String entry : json) {
             putMessage += "\n" + entry; 
         }
-        putMessage += "\n";
+        putMessage += "\r\n";
 
         System.out.println(putMessage);
 
