@@ -12,6 +12,19 @@ public class AggregationServer {
 
     private static Map<String, List<WeatherObject>> weatherDataMap = new HashMap<>();
 
+    public static List<WeatherObject> getFeed() {
+        List<WeatherObject> feed = new ArrayList<>();
+
+        for (List<WeatherObject> weatherList : AggregationServer.weatherDataMap.values()) {
+            if (!weatherList.isEmpty()) {
+
+                WeatherObject recentWeather = weatherList.get(weatherList.size() - 1);
+                feed.add(recentWeather);
+            }
+        }
+        return feed;
+    }
+
     public static void addWeatherData(WeatherObject weather) {
 
         String weatherId = weather.getId();
@@ -24,6 +37,7 @@ public class AggregationServer {
             AggregationServer.weatherDataMap.put(weatherId, newWeatherId);
         }
     }
+
     //TESTING FUNC!!!!!!!
     public static void printWeatherMap() {
 
@@ -147,6 +161,42 @@ public class AggregationServer {
             System.out.println("Error: Failed to process PUT request...");
         }
     
+    }
+
+    public static void handleGetReq(BufferedWriter bufferedWriter, String msg) {
+        
+        System.out.println("PUT request:\n" + msg + "\n");
+
+        try {
+    
+            bufferedWriter.write("GET request received!");
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+
+            List<WeatherObject> feed = getFeed();
+
+            Gson gson = new Gson();
+
+            List<String> json = new ArrayList<>();
+            for (WeatherObject weather : feed) {
+                json.add(gson.toJson(weather));
+                //System.out.println(gson.toJson(weather));
+            }
+
+            String response = "HTTP/1.1 200 OK\r\n"
+                    + "Content-Type: application/json\r\n" // I NEED TO WORK THIS OUT
+                    + "Content-Length: " + 5 +"\r\n\r";
+
+            for (String entry : json) {
+                response += "\n" + entry; 
+            }
+            response += "\r\n";
+    
+            System.out.println(response);
+
+        } catch (IOException e) {
+            System.out.println("Error: Failed to process GET request...");
+        }
     }
 
 
