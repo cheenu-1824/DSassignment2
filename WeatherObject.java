@@ -107,4 +107,31 @@ public class WeatherObject {
     public void setWind_spd_kt(int wind_spd_kt) {
         this.wind_spd_kt = wind_spd_kt;
     }
+
+    public String getId() {
+        return this.id;
+    }
+
+    @Override
+    public String toString() {
+        return "WeatherObject{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", state='" + state + '\'' +
+                ", timeZone='" + time_zone + '\'' +
+                ", lat=" + lat +
+                ", lon=" + lon +
+                ", localDateTime='" + local_date_time + '\'' +
+                ", localDateTimeFull='" + local_date_time_full + '\'' +
+                ", airTemp=" + air_temp +
+                ", apparentT=" + apparent_t +
+                ", cloud='" + cloud + '\'' +
+                ", dewpt=" + dewpt +
+                ", press=" + press +
+                ", relHum=" + rel_hum +
+                ", windDir='" + wind_dir + '\'' +
+                ", windSpdKmh=" + wind_spd_kmh +
+                ", windSpdKt=" + wind_spd_kt +
+                '}';
+    }
 }
