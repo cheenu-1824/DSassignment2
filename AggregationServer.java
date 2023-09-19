@@ -261,6 +261,9 @@ public class AggregationServer {
                         String msg = bufferedReader.readLine();
 
                         if (msg.equalsIgnoreCase("BYE")){
+                            bufferedWriter.write("BYE!");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
                             break;
                         }
 
