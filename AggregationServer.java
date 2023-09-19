@@ -183,9 +183,14 @@ public class AggregationServer {
                 //System.out.println(gson.toJson(weather));
             }
 
+            int contentLength = 0;
+            for (String entry : json) {
+                contentLength += entry.length();
+            }
+
             String response = "HTTP/1.1 200 OK\r\n"
                     + "Content-Type: application/json\r\n" // I NEED TO WORK THIS OUT
-                    + "Content-Length: " + 5 +"\r\n\r";
+                    + "Content-Length: " + contentLength +"\r\n\r";
 
             for (String entry : json) {
                 response += "\n" + entry; 
