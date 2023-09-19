@@ -158,8 +158,9 @@ public class AggregationServer {
                 weatherData.add(gson.fromJson(entry, WeatherObject.class));
                 addWeatherData(gson.fromJson(entry, WeatherObject.class));
             }
-            printWeatherMap();
 
+            //Testing
+            printWeatherMap();
     
         } catch (IOException e) {
             System.out.println("Error: Failed to process PUT request...");
