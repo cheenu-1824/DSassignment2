@@ -2,11 +2,45 @@ import java.net.*;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 import com.google.gson.Gson;
 
 
 public class AggregationServer {
+
+    private static Map<String, List<WeatherObject>> weatherDataMap = new HashMap<>();
+
+    public static void addWeatherData(WeatherObject weather) {
+
+        String weatherId = weather.getId();
+
+        if (AggregationServer.weatherDataMap.containsKey(weatherId)){
+            AggregationServer.weatherDataMap.get(weatherId).add(weather);
+        } else {
+            List<WeatherObject> newWeatherId = new ArrayList<>();
+            newWeatherId.add(weather);
+            AggregationServer.weatherDataMap.put(weatherId, newWeatherId);
+        }
+    }
+    //TESTING FUNC!!!!!!!
+    public static void printWeatherMap() {
+
+        System.out.println("<=====Weather Entries=====>");
+
+        for (Map.Entry<String, List<WeatherObject>> entry : AggregationServer.weatherDataMap.entrySet()) {
+            String weatherId = entry.getKey();
+            List<WeatherObject> weatherList = entry.getValue();
+
+            System.out.println("Weather Objects for ID: " + weatherId);
+
+            for (WeatherObject weather : weatherList) {
+                System.out.println(weather);
+            }
+            System.out.println("\n");
+        }
+    }
 
     public static String buildMsg(BufferedReader bufferedReader) {
         StringBuilder content = new StringBuilder();
@@ -89,7 +123,7 @@ public class AggregationServer {
 
     public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
-        System.out.println("PUT request:\n" + msg);
+        System.out.println("PUT request:\n" + msg + "\n");
         
         try {
     
@@ -104,11 +138,13 @@ public class AggregationServer {
             
             for (String entry : json) {
                 weatherData.add(gson.fromJson(entry, WeatherObject.class));
+                addWeatherData(gson.fromJson(entry, WeatherObject.class));
             }
+            printWeatherMap();
 
     
         } catch (IOException e) {
-            System.out.println("Error: Failed to send PUT response...");
+            System.out.println("Error: Failed to process PUT request...");
         }
     
     }
@@ -136,6 +172,23 @@ public class AggregationServer {
                 try {
 
                     socket = serverSocket.accept();
+
+                    // int maxClients 5;
+                    // int i = 0;
+                    // for (i = 0; i < maxClients; i++){
+                    //     if (threads[i] == null){
+                    //         (threads[i] = new clientThread(socket, threads)).start();
+                    //         break;
+                    //     }
+                    // }
+
+                    // if (i == maxClients) {
+                    //     bufferedWriter.write("Server too busy! Please try again later...");
+                    //     bufferedWriter.newLine();
+                    //     bufferedWriter.flush();
+
+                    //     socket.close();
+                    // }
 
                     inputStreamReader = new InputStreamReader(socket.getInputStream());
                     outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
