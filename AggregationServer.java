@@ -56,14 +56,16 @@ public class AggregationServer {
         }
     }
 
-    public static String buildMsg(BufferedReader bufferedReader) {
+    public static String buildMsg(BufferedReader bufferedReader, String reqType) {
         StringBuilder content = new StringBuilder();
         try {
             boolean isContent = false;
             while (true) {
                 String line = bufferedReader.readLine();
                 if (line.isEmpty()) {
-                    if (isContent == true){
+                    if (reqType == "GET") {
+                        break;
+                    } else if (isContent == true){
                         break;
                     } else {
                         isContent = true;
@@ -114,10 +116,12 @@ public class AggregationServer {
             } else {
                 switch (msg.substring(0, 3)) {
                     case "PUT":
-                        msg = buildMsg(bufferedReader);
+                        msg = buildMsg(bufferedReader, "PUT");
                         handlePutReq(bufferedWriter, msg);
                         break;
                     case "GET":
+                        msg = buildMsg(bufferedReader, "GET");
+                        handleGetReq(bufferedWriter, msg);
                         break;
                     default:
                         System.out.println("Client: " + msg);
