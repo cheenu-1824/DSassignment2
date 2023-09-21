@@ -242,18 +242,16 @@ public class ContentServer {
             
             // Send put request
             putReq(bufferedWriter, json);
-            System.out.println("Server: " + bufferedReader.readLine());
+            String response = bufferedReader.readLine();
+            System.out.println("Server: " + response);
 
             while (true) {
                 
-                String msg = scanner.nextLine();
-                bufferedWriter.write(msg);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
-
-                System.out.println("Server: " + bufferedReader.readLine());
-
-                if (msg.equalsIgnoreCase("BYE")){
+                if (response != null && response.equalsIgnoreCase("PUT request received!")) {
+                    bufferedWriter.write("BYE");
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                    System.out.println("Server: " + bufferedReader.readLine());
                     break;
                 }
             }
