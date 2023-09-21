@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import com.google.gson.Gson;
 
 
@@ -213,6 +217,39 @@ public class AggregationServer {
         }
     }
 
+    public static String weatherDataMapToJson() {
+
+        StringBuilder fullJson = new StringBuilder();
+        Gson gson = new Gson();
+
+        for (List<WeatherObject> weatherData : weatherDataMap.values()) {
+            for (WeatherObject weather : weatherData) {
+                String json = gson.toJson(weather);
+                fullJson.append(json).append("\n");
+            }
+        }
+        return fullJson.toString();
+    }
+
+    private static void saveWeatherData(String json) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("filesystem/weather.json"))) {
+            writer.write(json);
+            writer.newLine();
+        } catch (IOException e){
+            System.out.println("Error: Failed save weather data...");
+        }
+        System.out.println("Weather data has been saved...");
+    }
+
+    private static Runnable saveWeatherPeriodically = new Runnable() {
+        public void run() {
+
+            String json = weatherDataMapToJson();
+            saveWeatherData(json);
+
+        }
+    };
+        
 
     public static void main(String[] args) {
 
@@ -226,6 +263,10 @@ public class AggregationServer {
         int port = 4567;
 
         System.out.println("Starting aggregation server on port: " + port);
+
+        // Begin saving weather data periodically
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 120, TimeUnit.SECONDS);
 
         try {
             
@@ -273,6 +314,7 @@ public class AggregationServer {
 
                         // Handle requests "GET", "PUT"
                         handleReq(bufferedReader, bufferedWriter, msg);
+
                     }
 
                     socket.close();
