@@ -83,7 +83,7 @@ public class GETClient {
         return json;
     } 
 
-    public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+    public static List<WeatherObject> handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         
        // try {
             String msg = buildMsg(bufferedReader);
@@ -103,7 +103,36 @@ public class GETClient {
           //  System.out.println("Error: Failed to handle req properly...");
        // }
 
+       return weatherData;
+
     } 
+
+    public static void displayWeather(List<WeatherObject> weatherData) {
+
+        System.out.println("<=====WEATHER_FEED=====>");
+
+        for (WeatherObject weather : weatherData) {
+            System.out.println("ID: " + weather.getId());
+            System.out.println("Name: " + weather.getName());
+            System.out.println("State: " + weather.getState());
+            System.out.println("Time Zone: " + weather.getTime_zone());
+            System.out.println("Latitude: " + weather.getLat());
+            System.out.println("Longitude: " + weather.getLon());
+            System.out.println("Local Date Time: " + weather.getLocal_date_time());
+            System.out.println("Local Date Time Full: " + weather.getLocal_date_time_full());
+            System.out.println("Air Temperature: " + weather.getAir_temp());
+            System.out.println("Apparent Temperature: " + weather.getApparent_t());
+            System.out.println("Cloud: " + weather.getCloud());
+            System.out.println("Dew Point: " + weather.getDewpt());
+            System.out.println("Pressure: " + weather.getPress());
+            System.out.println("Relative Humidity: " + weather.getRel_hum());
+            System.out.println("Wind Direction: " + weather.getWind_dir());
+            System.out.println("Wind Speed (km/h): " + weather.getWind_spd_kmh());
+            System.out.println("Wind Speed (kt): " + weather.getWind_spd_kt());
+            System.out.println();
+            System.out.println("<======================>");
+        }
+    }
 
     public static void main(String[] args) {
 
@@ -141,7 +170,9 @@ public class GETClient {
             getReq(bufferedWriter);
             System.out.println("Server: " + bufferedReader.readLine());
 
-            handleReq(bufferedReader, bufferedWriter);
+            List<WeatherObject> weatherData = handleReq(bufferedReader, bufferedWriter);
+
+            displayWeather(weatherData);
 
             while (true) {
                 
