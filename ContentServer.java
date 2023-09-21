@@ -192,7 +192,7 @@ public class ContentServer {
         String filename = "content/test.txt";
 
         if (args.length != 2){
-            System.out.println("Incorrect parameters, input should be as follows: make contentServer <domain:port> <filename>");
+            System.out.println("Incorrect parameters, input should be as follows: java ContentServer <domain:port> <filename>");
             System.exit(1);
         }
 
