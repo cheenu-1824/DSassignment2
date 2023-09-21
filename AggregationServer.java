@@ -250,11 +250,14 @@ public class AggregationServer {
 
             while ((line = bufferedReader.readLine()) != null) {
 
-                WeatherObject weather = gson.fromJson(line, WeatherObject.class);
-                addWeatherData(weather);
+                if (!line.isEmpty()) {
+
+                    WeatherObject weather = gson.fromJson(line, WeatherObject.class);
+                    addWeatherData(weather);
+
+                }
                 
             }
-
 
         } catch (IOException e) {
             System.out.println("Error: Failed to upload weather data from local filesystem...");
@@ -285,7 +288,7 @@ public class AggregationServer {
         System.out.println("Starting aggregation server on port: " + port);
 
         // Upload weather from local filesystem
-        //uploadWeatherData(); FIXX
+        uploadWeatherData();
 
         // Begin saving weather data to filesystem periodically
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
