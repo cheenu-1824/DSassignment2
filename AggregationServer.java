@@ -285,6 +285,10 @@ public class AggregationServer {
         String serverAddress = "localhost";
         int port = 4567;
 
+        if (args.length == 1){
+            port = args[0];
+        }
+
         System.out.println("Starting aggregation server on port: " + port);
 
         // Upload weather from local filesystem
