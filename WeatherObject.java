@@ -111,6 +111,70 @@ public class WeatherObject {
     public String getId() {
         return this.id;
     }
+    
+    public String getName() {
+        return this.name;
+    }
+    
+    public String getState() {
+        return this.state;
+    }
+    
+    public String getTime_zone() {
+        return this.time_zone;
+    }
+    
+    public double getLat() {
+        return this.lat;
+    }
+    
+    public double getLon() {
+        return this.lon;
+    }
+    
+    public String getLocal_date_time() {
+        return this.local_date_time;
+    }
+    
+    public String getLocal_date_time_full() {
+        return this.local_date_time_full;
+    }
+    
+    public double getAir_temp() {
+        return this.air_temp;
+    }
+    
+    public double getApparent_t() {
+        return this.apparent_t;
+    }
+    
+    public String getCloud() {
+        return this.cloud;
+    }
+    
+    public double getDewpt() {
+        return this.dewpt;
+    }
+    
+    public double getPress() {
+        return this.press;
+    }
+    
+    public int getRel_hum() {
+        return this.rel_hum;
+    }
+    
+    public String getWind_dir() {
+        return this.wind_dir;
+    }
+    
+    public int getWind_spd_kmh() {
+        return this.wind_spd_kmh;
+    }
+    
+    public int getWind_spd_kt() {
+        return this.wind_spd_kt;
+    }
 
     @Override
     public String toString() {
