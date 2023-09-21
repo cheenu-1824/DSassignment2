@@ -170,7 +170,7 @@ public class AggregationServer {
 
     public static void handleGetReq(BufferedWriter bufferedWriter, String msg) {
         
-        System.out.println("PUT request:\n" + msg + "\n");
+        System.out.println("GET request:\n" + msg + "\n");
 
         try {
     
@@ -203,6 +203,10 @@ public class AggregationServer {
             response += "\r\n";
     
             System.out.println(response);
+
+            bufferedWriter.write(response);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
 
         } catch (IOException e) {
             System.out.println("Error: Failed to process GET request...");
