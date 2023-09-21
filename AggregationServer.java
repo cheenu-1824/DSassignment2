@@ -232,13 +232,33 @@ public class AggregationServer {
     }
 
     private static void saveWeatherData(String json) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("filesystem/weather.json"))) {
-            writer.write(json);
-            writer.newLine();
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("filesystem/weather.json"))) {
+            bufferedWriter.write(json);
+            bufferedWriter.newLine();
         } catch (IOException e){
             System.out.println("Error: Failed save weather data...");
         }
         System.out.println("Weather data has been saved...");
+    }
+
+    public static void uploadWeatherData() {
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader("filesystem/weather.json"))) {
+
+            Gson gson = new Gson();
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null) {
+
+                WeatherObject weather = gson.fromJson(line, WeatherObject.class);
+                addWeatherData(weather);
+                
+            }
+
+
+        } catch (IOException e) {
+            System.out.println("Error: Failed to upload weather data from local filesystem...");
+        }
     }
 
     private static Runnable saveWeatherPeriodically = new Runnable() {
@@ -264,9 +284,12 @@ public class AggregationServer {
 
         System.out.println("Starting aggregation server on port: " + port);
 
-        // Begin saving weather data periodically
+        // Upload weather from local filesystem
+        //uploadWeatherData(); FIXX
+
+        // Begin saving weather data to filesystem periodically
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 120, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 60, TimeUnit.SECONDS);
 
         try {
             
