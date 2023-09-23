@@ -19,6 +19,7 @@ public class WeatherObject {
     private String wind_dir;
     private int wind_spd_kmh;
     private int wind_spd_kt;
+    private int updateValue;
 
     public WeatherObject() {
         this.id = null;
@@ -38,6 +39,7 @@ public class WeatherObject {
         this.wind_dir = null;
         this.wind_spd_kmh = 0;
         this.wind_spd_kt = 0;
+        this.updateValue = 0;
     }
 
     public void setId(String id) {
@@ -174,6 +176,14 @@ public class WeatherObject {
     
     public int getWind_spd_kt() {
         return this.wind_spd_kt;
+    }
+
+    public void setUpdateValue(int updateValue) {
+        this.updateValue = updateValue;
+    }
+
+    public int getUpdateValue() {
+        return this.updateValue;
     }
 
     @Override
