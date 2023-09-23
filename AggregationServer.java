@@ -153,6 +153,17 @@ public class AggregationServer {
             bufferedWriter.newLine();
             bufferedWriter.flush();
 
+            // CHECK IF FILE EXIST
+            File weatherFile = new File("/filesystem/weather.json");
+            String putResponse = "";
+            if (weatherFile.exists()) {
+                putResponse = "HTTP/1.1 204 No Content\r\n"
+                    + "Content-Location: /existing.html\r\n\r\n";
+            } else {
+                putResponse = "HTTP/1.1 201 Created\r\n"
+                + "Content-Location: /filesystem/weather.json\r\n\r\n";
+            }
+
             Gson gson = new Gson();
 
             List<String> json = splitJson(getBody(msg));
@@ -286,7 +297,7 @@ public class AggregationServer {
         int port = 4567;
 
         if (args.length == 1){
-            port = args[0];
+            port = Integer.parseInt(args[0]);
         }
 
         System.out.println("Starting aggregation server on port: " + port);
