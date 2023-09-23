@@ -16,6 +16,9 @@ How to run GET Client:
 
 java -cp './lib/*:./' GETClient localhost:4567
 
+How Lamport clock will be employed:
+Will be implemented by creating a class to manage timestamps. 
+Will use lamport clock to synchronise the requests by using the timestamps sent through the request.
 
 How testing will be employed:
 
