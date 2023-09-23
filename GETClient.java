@@ -20,7 +20,7 @@ public class GETClient {
 
     public static void getReq(BufferedWriter bufferedWriter) {
 
-        String getMessage = "GET /api/resource HTTP/1.1\r\n"
+        String getMessage = "GET /weather.json HTTP/1.1\r\n" //find correct dir
                     + "Host: " + "host" + "\r\n\r\n";
 
         System.out.println(getMessage);
@@ -109,7 +109,7 @@ public class GETClient {
 
     public static void displayWeather(List<WeatherObject> weatherData) {
 
-        System.out.println("<=====WEATHER_FEED=====>");
+        System.out.println("<=====WEATHER FEED=====>");
 
         for (WeatherObject weather : weatherData) {
             System.out.println("ID: " + weather.getId());

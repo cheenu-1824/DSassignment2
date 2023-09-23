@@ -242,12 +242,14 @@ public class ContentServer {
             
             // Send put request
             putReq(bufferedWriter, json);
-            String response = bufferedReader.readLine();
-            System.out.println("Server: " + response);
+            String response = "";
 
             while (true) {
+
+                response = bufferedReader.readLine();
+                System.out.println("Server: " + response);
                 
-                if (response != null && response.equalsIgnoreCase("PUT request received!")) {
+                if (response != null && response.equalsIgnoreCase("Content-Location: /filesystem/weather.json")) {
                     bufferedWriter.write("BYE");
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
