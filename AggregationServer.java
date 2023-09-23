@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -145,6 +146,33 @@ public class AggregationServer {
 
     }
 
+    public static void updateWeatherValue() {
+        for (Map.Entry<String, List<WeatherObject>> entry : AggregationServer.weatherDataMap.entrySet()) {
+            List<WeatherObject> weatherList = entry.getValue();
+
+            for (WeatherObject weather : weatherList) {
+                weather.setUpdateValue(weather.getUpdateValue()+1);
+            }
+        }
+    }
+
+    public static void removeOutdatedWeather() {
+        for (Map.Entry<String, List<WeatherObject>> entry : AggregationServer.weatherDataMap.entrySet()) {
+            List<WeatherObject> weatherList = entry.getValue();
+            Iterator<WeatherObject> iterator = weatherList.iterator();
+    
+            while (iterator.hasNext()) {
+                WeatherObject weather = iterator.next();
+    
+                if (weather.getUpdateValue() >= 20) {
+                    iterator.remove();
+
+                }
+            }
+        }
+    }
+    
+
     public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
         System.out.println("PUT request:\n" + msg + "\n");
@@ -164,6 +192,9 @@ public class AggregationServer {
                 putResponse = "HTTP/1.1 201 Created\r\n"
                 + "Content-Location: /filesystem/weather.json\r\n\r\n";
             }
+
+            // Increament all updateValue
+            updateWeatherValue();
 
             Gson gson = new Gson();
 
@@ -189,6 +220,9 @@ public class AggregationServer {
             + "Content-Location: /filesystem/weather.json\r\n\r\n") {
                 saveWeatherPeriodically.run();
             }
+
+            //Remove weather entries that is not in last 20 updates
+
 
             //Testing
             printWeatherMap();
@@ -332,7 +366,7 @@ public class AggregationServer {
         // Begin saving weather data to filesystem periodically
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         while (weatherFile.exists()){
-            executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 60, TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 10, TimeUnit.SECONDS);
             break;
         }
 
