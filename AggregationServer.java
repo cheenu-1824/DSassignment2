@@ -154,11 +154,11 @@ public class AggregationServer {
             bufferedWriter.flush();
 
             // CHECK IF FILE EXIST
-            File weatherFile = new File("/filesystem/weather.json");
+            File weatherFile = new File("filesystem/weather.json");
             String putResponse = "";
             if (weatherFile.exists()) {
                 putResponse = "HTTP/1.1 204 No Content\r\n"
-                    + "Content-Location: /existing.html\r\n\r\n";
+                    + "Content-Location: /filesystem/weather.json\r\n\r\n";
             } else {
                 putResponse = "HTTP/1.1 201 Created\r\n"
                 + "Content-Location: /filesystem/weather.json\r\n\r\n";
@@ -174,8 +174,17 @@ public class AggregationServer {
                 addWeatherData(gson.fromJson(entry, WeatherObject.class));
             }
 
+            if (putResponse == "HTTP/1.1 201 Created\r\n"
+            + "Content-Location: /filesystem/weather.json\r\n\r\n") {
+                saveWeatherPeriodically.run();
+            }
+
             //Testing
             printWeatherMap();
+
+            bufferedWriter.write(putResponse);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
     
         } catch (IOException e) {
             System.out.println("Error: Failed to process PUT request...");
@@ -303,11 +312,18 @@ public class AggregationServer {
         System.out.println("Starting aggregation server on port: " + port);
 
         // Upload weather from local filesystem
-        uploadWeatherData();
+        File weatherFile = new File("filesystem/weather.json");
+
+        if (weatherFile.exists()) {
+            uploadWeatherData();
+        }
 
         // Begin saving weather data to filesystem periodically
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 60, TimeUnit.SECONDS);
+        while (weatherFile.exists()){
+            executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 60, TimeUnit.SECONDS);
+            break;
+        }
 
         try {
             
