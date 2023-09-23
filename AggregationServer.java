@@ -10,6 +10,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 
 
 public class AggregationServer {
@@ -130,7 +132,7 @@ public class AggregationServer {
                     default:
                         System.out.println("Client: " + msg);
         
-                        bufferedWriter.write("MSG received!");
+                        bufferedWriter.write("HTTP/1.1 400 Bad Request");
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
                         break;
@@ -157,8 +159,7 @@ public class AggregationServer {
             File weatherFile = new File("filesystem/weather.json");
             String putResponse = "";
             if (weatherFile.exists()) {
-                putResponse = "HTTP/1.1 204 No Content\r\n"
-                    + "Content-Location: /filesystem/weather.json\r\n\r\n";
+                putResponse = "HTTP/1.1 200 OK\r\n\r\n";
             } else {
                 putResponse = "HTTP/1.1 201 Created\r\n"
                 + "Content-Location: /filesystem/weather.json\r\n\r\n";
@@ -170,8 +171,18 @@ public class AggregationServer {
             List<WeatherObject> weatherData = new ArrayList<>();
             
             for (String entry : json) {
-                weatherData.add(gson.fromJson(entry, WeatherObject.class));
-                addWeatherData(gson.fromJson(entry, WeatherObject.class));
+                try {
+                    WeatherObject weather = gson.fromJson(entry, WeatherObject.class);
+                    weatherData.add(weather);
+                    addWeatherData(weather);
+                } catch (JsonSyntaxException e) {
+                    System.err.println("Error: Failed to parse JSON...");
+                    putResponse = "HTTP/1.1 500 Internal Server Error";
+                }
+            }
+
+            if (json.size() == 0) {
+                putResponse = "HTTP/1.1 204 No Content\r\n";
             }
 
             if (putResponse == "HTTP/1.1 201 Created\r\n"
