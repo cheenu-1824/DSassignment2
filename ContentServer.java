@@ -249,7 +249,7 @@ public class ContentServer {
                 response = bufferedReader.readLine();
                 System.out.println("Server: " + response);
                 
-                if (response != null && response.equalsIgnoreCase("Content-Location: /filesystem/weather.json")) {
+                if (response != null && response.equalsIgnoreCase("HTTP/1.1 200 OK")) { // I NEED TO IMPLEMENT THIS PROPERLY
                     bufferedWriter.write("BYE");
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
