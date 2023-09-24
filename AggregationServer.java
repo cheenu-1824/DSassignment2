@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +20,8 @@ public class AggregationServer {
 
     private static Map<String, List<WeatherObject>> weatherDataMap = new HashMap<>();
     private static Map<Integer, Boolean> stationHeartbeat = new HashMap<>();
+    public static ClientThread[] threads = new ClientThread[5];
+
 
     public static List<WeatherObject> getFeed() {
         List<WeatherObject> feed = new ArrayList<>();
@@ -397,6 +400,7 @@ public class AggregationServer {
         
     public static void main(String[] args) {
 
+        int maxClients = 2;
         Socket socket = null;
         ServerSocket serverSocket = null;
         InputStreamReader inputStreamReader = null;
@@ -427,6 +431,8 @@ public class AggregationServer {
             break;
         }
 
+        //ExecutorService threadPool = Executors.newFixedThreadPool(maxClients);
+
         try {
             
             serverSocket = new ServerSocket(port);
@@ -437,50 +443,22 @@ public class AggregationServer {
 
                     socket = serverSocket.accept();
 
-                    // int maxClients 5;
-                    // int i = 0;
-                    // for (i = 0; i < maxClients; i++){
-                    //     if (threads[i] == null){
-                    //         (threads[i] = new clientThread(socket, threads)).start();
-                    //         break;
-                    //     }
-                    // }
-
-                    // if (i == maxClients) {
-                    //     bufferedWriter.write("Server too busy! Please try again later...");
-                    //     bufferedWriter.newLine();
-                    //     bufferedWriter.flush();
-
-                    //     socket.close();
-                    // }
-
-                    inputStreamReader = new InputStreamReader(socket.getInputStream());
-                    outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-
-                    bufferedReader = new BufferedReader(inputStreamReader);
-                    bufferedWriter = new BufferedWriter(outputStreamWriter);
-
-                    while (true) {
-
-                        String msg = bufferedReader.readLine();
-
-                        if (msg.equalsIgnoreCase("BYE")){
-                            bufferedWriter.write("BYE!");
-                            bufferedWriter.newLine();
-                            bufferedWriter.flush();
+                    int i = 0;
+                    for (i = 0; i < maxClients; i++){
+                        if (threads[i] == null){
+                            threads[i] = new ClientThread(socket);
+                            threads[i].start();
                             break;
                         }
-
-                        // Handle requests "GET", "PUT"
-                        handleReq(bufferedReader, bufferedWriter, msg);
-
                     }
 
-                    socket.close();
-                    inputStreamReader.close();
-                    outputStreamWriter.close();
-                    bufferedReader.close();
-                    bufferedWriter.close();
+                    if (i == maxClients) {
+                        bufferedWriter.write("Server too busy. Please try again later...");
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+
+                        socket.close();
+                    }
 
                 } catch (IOException e) {
                     System.out.println("Aggregation server socket was closed...");
