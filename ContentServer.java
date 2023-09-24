@@ -4,12 +4,14 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-
+import java.util.Random;
 
 import com.google.gson.Gson;
 
 
 public class ContentServer {
+
+    private static int stationId = -1;
 
     public static void menu() {
         
@@ -121,6 +123,9 @@ public class ContentServer {
                     break;
             }
         }
+
+        weather.setStationId(ContentServer.stationId);
+
         return weather;
     }
 
@@ -190,6 +195,10 @@ public class ContentServer {
         String serverAddress = "localhost";
         int port = 4567;
         String filename = "content/test.txt";
+
+        Random random = new Random();
+        int randomNumber = random.nextInt(1000000);
+        ContentServer.stationId = randomNumber;
 
         if (args.length != 2){
             System.out.println("Incorrect parameters, input should be as follows: java ContentServer <domain:port> <filename>");
