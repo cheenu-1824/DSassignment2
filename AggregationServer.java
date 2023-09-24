@@ -431,8 +431,6 @@ public class AggregationServer {
             break;
         }
 
-        //ExecutorService threadPool = Executors.newFixedThreadPool(maxClients);
-
         try {
             
             serverSocket = new ServerSocket(port);
@@ -453,11 +451,15 @@ public class AggregationServer {
                     }               
 
                     if (i == maxClients) {
+                        outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+                        bufferedWriter = new BufferedWriter(outputStreamWriter);
                         bufferedWriter.write("Server too busy. Please try again later...");
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
 
                         socket.close();
+                        outputStreamWriter.close();
+                        bufferedWriter.close();
                     }
 
                 } catch (IOException e) {

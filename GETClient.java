@@ -53,7 +53,7 @@ public class GETClient {
                 content.append(line).append("\n");
             }
         } catch (IOException e) {
-            System.out.println("Error: Failed to build request into a string...");
+            System.out.println("Error: Failed to recieve request from aggregation server...");
         }
         return content.toString().trim();
     }
