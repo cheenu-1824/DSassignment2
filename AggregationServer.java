@@ -374,6 +374,10 @@ public class AggregationServer {
         }
     }
 
+    public static void handleHeartbeat() {
+        
+    }
+
     private static Runnable saveWeatherPeriodically = new Runnable() {
         public void run() {
 
@@ -391,7 +395,6 @@ public class AggregationServer {
         }
     };
         
-
     public static void main(String[] args) {
 
         Socket socket = null;
