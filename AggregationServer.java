@@ -222,7 +222,7 @@ public class AggregationServer {
             }
 
             //Remove weather entries that is not in last 20 updates
-
+            removeOutdatedWeather();
 
             //Testing
             printWeatherMap();
