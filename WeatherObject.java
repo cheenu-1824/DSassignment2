@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.Random;
 
 public class WeatherObject {
     private String id;
@@ -20,6 +21,7 @@ public class WeatherObject {
     private int wind_spd_kmh;
     private int wind_spd_kt;
     private int updateValue;
+    private int stationId;
 
     public WeatherObject() {
         this.id = null;
@@ -40,6 +42,10 @@ public class WeatherObject {
         this.wind_spd_kmh = 0;
         this.wind_spd_kt = 0;
         this.updateValue = 0;
+
+        Random random = new Random();
+        int randomNumber = random.nextInt(1000000);
+        this.stationId = randomNumber;
     }
 
     public void setId(String id) {
@@ -186,6 +192,16 @@ public class WeatherObject {
         return this.updateValue;
     }
 
+    public void setStationId() {
+        Random random = new Random();
+        int randomNumber = random.nextInt(1000000);
+        this.stationId = randomNumber;
+    }
+
+    public int getStationId() {
+        return this.stationId;
+    }
+
     @Override
     public String toString() {
         return "WeatherObject{" +
@@ -206,6 +222,8 @@ public class WeatherObject {
                 ", windDir='" + wind_dir + '\'' +
                 ", windSpdKmh=" + wind_spd_kmh +
                 ", windSpdKt=" + wind_spd_kt +
+                ", updateValue=" + updateValue +
+                ", stationId=" + stationId +
                 '}';
     }
 }
