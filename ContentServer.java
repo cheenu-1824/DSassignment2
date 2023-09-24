@@ -258,7 +258,7 @@ public class ContentServer {
                 response = bufferedReader.readLine();
                 System.out.println("Server: " + response);
                 
-                if (response != null && response.equalsIgnoreCase("HTTP/1.1 200 OK")) { // I NEED TO IMPLEMENT THIS PROPERLY
+                if (response != null || response.isEmpty()) {
                     bufferedWriter.write("BYE");
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
