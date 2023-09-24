@@ -442,15 +442,15 @@ public class AggregationServer {
                 try {
 
                     socket = serverSocket.accept();
-
+                    System.out.println("HEY");
                     int i = 0;
                     for (i = 0; i < maxClients; i++){
                         if (threads[i] == null){
                             threads[i] = new ClientThread(socket);
-                            threads[i].start();
+                            new Thread(threads[i]).start();
                             break;
                         }
-                    }
+                    }               
 
                     if (i == maxClients) {
                         bufferedWriter.write("Server too busy. Please try again later...");

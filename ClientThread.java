@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 
-public class ClientThread {
+public class ClientThread implements Runnable{
 
     private Socket socket;
 
@@ -9,7 +9,7 @@ public class ClientThread {
         this.socket = socket;
     }
 
-    public void start() {
+    public void run() {
 
         int maxClients = 5;
 
