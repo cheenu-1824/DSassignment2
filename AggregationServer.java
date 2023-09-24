@@ -18,6 +18,7 @@ import com.google.gson.JsonSyntaxException;
 public class AggregationServer {
 
     private static Map<String, List<WeatherObject>> weatherDataMap = new HashMap<>();
+    private static Map<Integer, Boolean> stationHeartbeat = new HashMap<>();
 
     public static List<WeatherObject> getFeed() {
         List<WeatherObject> feed = new ArrayList<>();
@@ -32,7 +33,15 @@ public class AggregationServer {
         return feed;
     }
 
+    public static void updateStationHeartbeat(WeatherObject weather) {
+        int stationId = weather.getStationId();
+        stationHeartbeat.put(stationId, true);
+    }
+
     public static void addWeatherData(WeatherObject weather) {
+
+        // Add weather/update heartbeat for station
+        updateStationHeartbeat(weather);
 
         String weatherId = weather.getId();
 
@@ -172,7 +181,6 @@ public class AggregationServer {
         }
     }
     
-
     public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
         System.out.println("PUT request:\n" + msg + "\n");
@@ -329,11 +337,56 @@ public class AggregationServer {
         }
     }
 
+    public static void removeStationWeather(int stationId) {
+        Iterator<Map.Entry<String, List<WeatherObject>>> iterator = weatherDataMap.entrySet().iterator();
+    
+        while (iterator.hasNext()) {
+            Map.Entry<String, List<WeatherObject>> entry = iterator.next();
+            List<WeatherObject> weatherList = entry.getValue();
+    
+            Iterator<WeatherObject> listIterator = weatherList.iterator();
+    
+            while (listIterator.hasNext()) {
+                WeatherObject weatherObject = listIterator.next();
+    
+                if (weatherObject.getStationId() == stationId) {
+                    listIterator.remove();
+                }
+            }
+    
+            if (weatherList.isEmpty()) {
+                iterator.remove();
+            }
+        }
+    }
+    
+    public static void checkHeartbeat() {
+        for (Map.Entry<Integer, Boolean> entry : stationHeartbeat.entrySet()) {
+            int stationId = entry.getKey();
+            if (entry.getValue() == true){
+                stationHeartbeat.put(stationId, false);
+            } else {
+                System.out.println("Weather from stationId: " + stationId + " has been removed...");
+                removeStationWeather(stationId);
+            }
+
+            
+        }
+    }
+
     private static Runnable saveWeatherPeriodically = new Runnable() {
         public void run() {
 
             String json = weatherDataMapToJson();
             saveWeatherData(json);
+
+        }
+    };
+
+    private static Runnable checkHeartbeatPeriodically = new Runnable() {
+        public void run() {
+
+            checkHeartbeat();
 
         }
     };
@@ -363,10 +416,11 @@ public class AggregationServer {
             uploadWeatherData();
         }
 
-        // Begin saving weather data to filesystem periodically
+        // Begin saving weather data to filesystem periodically & checking for heartbeat from content servers
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         while (weatherFile.exists()){
             executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 10, TimeUnit.SECONDS);
+            executor.scheduleAtFixedRate(checkHeartbeatPeriodically, 0, 30, TimeUnit.SECONDS);
             break;
         }
 
