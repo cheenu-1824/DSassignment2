@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -99,7 +98,7 @@ public class AggregationServer {
     }
 
     public static String getBody(String msg) {
-        int contentIndex = msg.indexOf("{");
+        int contentIndex = msg.indexOf("\n\n");
         if (contentIndex != -1) {
             String requestBody = msg.substring(contentIndex);
             return requestBody;
@@ -141,6 +140,10 @@ public class AggregationServer {
                     case "GET":
                         msg = buildMsg(bufferedReader, "GET");
                         handleGetReq(bufferedWriter, msg);
+                        break;
+                    case "POS":
+                        msg = buildMsg(bufferedReader, "POST");
+                        handlePostReq(bufferedWriter, msg);
                         break;
                     default:
                         System.out.println("Client: " + msg);
@@ -293,6 +296,56 @@ public class AggregationServer {
         }
     }
 
+    public static void handlePostReq(BufferedWriter bufferedWriter, String msg) {
+        
+        System.out.println("POST request:\n" + msg + "\n");
+
+        try {
+    
+            bufferedWriter.write("POST request received!");
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+            
+            // extract stationID
+            msg = getBody(msg);
+            int stationId = extractStationId(msg);
+
+            // update stationId to true
+            if (stationId != -1){
+                handleHeartbeat(stationId);
+            } else {
+                System.out.println("Error: Failed to extract stationId from POST req...");
+            }
+
+
+            String response = "HTTP/1.1 200 OK\r\n\r\n";
+    
+            bufferedWriter.write(response);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+
+        } catch (IOException e) {
+            System.out.println("Error: Failed to process POST request...");
+        }
+    }
+
+    public static int extractStationId(String msg) {
+        int index = msg.indexOf(':');
+        int stationId = -1;
+        if (index != -1) {
+            // Extract the part of the string after the colon
+            String restOfMsg = msg.substring(index + 1).trim();
+
+            // Split the remaining text by spaces to get words
+            String[] words = restOfMsg.split(" ");
+
+            if (words.length > 0) {
+                stationId = Integer.parseInt(words[0]);
+            }
+        }
+        return stationId;
+    }
+
     public static String weatherDataMapToJson() {
 
         StringBuilder fullJson = new StringBuilder();
@@ -362,6 +415,16 @@ public class AggregationServer {
             }
         }
     }
+
+    public static void handleHeartbeat(int stationId) {
+        for (Map.Entry<Integer, Boolean> entry : stationHeartbeat.entrySet()) {
+            int stationIdMap = entry.getKey();
+            if (stationIdMap == stationId) {
+                entry.setValue(true);
+                break;
+            }
+        }
+    }
     
     public static void checkHeartbeat() {
         for (Map.Entry<Integer, Boolean> entry : stationHeartbeat.entrySet()) {
@@ -375,10 +438,6 @@ public class AggregationServer {
 
             
         }
-    }
-
-    public static void handleHeartbeat() {
-        
     }
 
     private static Runnable saveWeatherPeriodically = new Runnable() {
@@ -424,7 +483,7 @@ public class AggregationServer {
         }
 
         // Begin saving weather data to filesystem periodically & checking for heartbeat from content servers
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
         while (weatherFile.exists()){
             executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 10, TimeUnit.SECONDS);
             executor.scheduleAtFixedRate(checkHeartbeatPeriodically, 0, 30, TimeUnit.SECONDS);
@@ -440,7 +499,6 @@ public class AggregationServer {
                 try {
 
                     socket = serverSocket.accept();
-                    System.out.println("HEY");
                     int i = 0;
                     for (i = 0; i < maxClients; i++){
                         if (threads[i] == null){
