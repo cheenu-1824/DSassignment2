@@ -20,15 +20,12 @@ public class GETClient {
 
     public static void getReq(BufferedWriter bufferedWriter) {
 
-        String getMessage = "GET /weather.json HTTP/1.1\r\n" //find correct dir
+        String getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
                     + "Host: " + "host" + "\r\n\r\n";
-
-        System.out.println(getMessage);
 
         try {
 
             bufferedWriter.write(getMessage);
-            //bufferedWriter.newLine();
             bufferedWriter.flush();
 
         } catch (IOException e ){
@@ -85,23 +82,18 @@ public class GETClient {
 
     public static List<WeatherObject> handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         
-       // try {
-            String msg = buildMsg(bufferedReader);
-            System.out.println(msg);
+        String msg = buildMsg(bufferedReader);
+        System.out.println("Server: Post req received!\n" + msg + "\n");
+        String body = getBody(msg);
 
-            String body = getBody(msg);
+        Gson gson = new Gson();
 
-            Gson gson = new Gson();
-
-            List<String> json = splitJson(getBody(msg));
-            List<WeatherObject> weatherData = new ArrayList<>();
-            
-            for (String entry : json) {
-                weatherData.add(gson.fromJson(entry, WeatherObject.class));
-            }
-       // } catch (IOException e) {
-          //  System.out.println("Error: Failed to handle req properly...");
-       // }
+        List<String> json = splitJson(getBody(msg));
+        List<WeatherObject> weatherData = new ArrayList<>();
+        
+        for (String entry : json) {
+            weatherData.add(gson.fromJson(entry, WeatherObject.class));
+        }
 
        return weatherData;
 
@@ -109,7 +101,7 @@ public class GETClient {
 
     public static void displayWeather(List<WeatherObject> weatherData) {
 
-        System.out.println("<=====WEATHER FEED=====>");
+        System.out.println("<=====WEATHER FEED=====>\n");
 
         for (WeatherObject weather : weatherData) {
             System.out.println("ID: " + weather.getId());
@@ -131,6 +123,7 @@ public class GETClient {
             System.out.println("Wind Speed (kt): " + weather.getWind_spd_kt());
             System.out.println();
             System.out.println("<======================>");
+            System.out.println();
         }
     }
 
@@ -168,24 +161,23 @@ public class GETClient {
             scanner = new Scanner(System.in);
 
             getReq(bufferedWriter);
-            System.out.println("Server: " + bufferedReader.readLine());
 
             List<WeatherObject> weatherData = handleReq(bufferedReader, bufferedWriter);
 
             displayWeather(weatherData);
+            
+            String msg = "BYE";
+            bufferedWriter.write(msg);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
 
-            while (true) {
-                
-                String msg = "BYE";
-                bufferedWriter.write(msg);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
+            System.out.println("Server: " + bufferedReader.readLine());
 
-                System.out.println("Server: " + bufferedReader.readLine());
+            if (msg.equalsIgnoreCase("BYE")){
+                System.out.println("Request was handled sucessfully...");
 
-                if (msg.equalsIgnoreCase("BYE")){
-                    break;
-                }
+            } else {
+                System.out.println("Failed to handle request sucessfully...");
             }
 
         } catch (IOException e){
