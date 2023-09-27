@@ -3,7 +3,9 @@ import java.io.*;
 
 public class ClientThread implements Runnable{
 
-    private Socket socket;
+    private Socket socket = null;;
+    private boolean exitThread = false;
+
 
     public ClientThread(Socket socket) {
         this.socket = socket;
@@ -11,7 +13,10 @@ public class ClientThread implements Runnable{
 
     public void run() {
 
-        int maxClients = 5;
+        int maxClients = 1;
+
+        //Thread timer = new Thread(this::waitForError);
+        //timer.start();
 
         try {
 
@@ -23,23 +28,27 @@ public class ClientThread implements Runnable{
             while (true) {
 
                 String msg = bufferedReader.readLine();
+                System.out.println("ssHERE");
+                System.out.println(msg);
 
-                if (msg.equalsIgnoreCase("BYE")){
+                if (msg.equalsIgnoreCase("BYE")) {
                     bufferedWriter.write("BYE!");
                     bufferedWriter.newLine();
                     bufferedWriter.flush();
                     break;
                 }
 
-                // Handle requests "GET", "PUT"
-                AggregationServer.handleReq(bufferedReader, bufferedWriter, msg);
-
+                if (!exitThread) {
+                    AggregationServer.handleReq(bufferedReader, bufferedWriter, msg);
+                }
             }
 
-            for (int i = 0; i < maxClients; i++) {
-                if (AggregationServer.threads[i] == this) {
-                    AggregationServer.threads[i] = null;
-                    break;
+            synchronized (AggregationServer.threads) {
+                for (int i = 0; i < maxClients; i++) {
+                    if (AggregationServer.threads[i] == this) {
+                        AggregationServer.threads[i] = null;
+                        break;
+                    }
                 }
             }
 
@@ -51,7 +60,19 @@ public class ClientThread implements Runnable{
 
         } catch (IOException e) {
             System.out.println("Error: Failed to start threaded client socket...");
-        }
+
+        } 
     }
+
+    // private void waitForError() {
+    //     try {
+    //         Thread.sleep(15000);
+    //         System.out.println("YEAaaaaar Thread to finish...");
+
+    //     } catch (InterruptedException e) {
+    //         System.out.println("Error: Failed to wait for Thread to finish...");
+    //     }
+    //     exitThread = true;
+    // }
 
 }

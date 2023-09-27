@@ -13,6 +13,10 @@ import java.util.concurrent.TimeUnit;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import java.util.logging.Logger;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.SimpleFormatter;
 
 
 public class AggregationServer {
@@ -20,7 +24,7 @@ public class AggregationServer {
     private static Map<String, List<WeatherObject>> weatherDataMap = new HashMap<>();
     private static Map<Integer, Boolean> stationHeartbeat = new HashMap<>();
     public static ClientThread[] threads = new ClientThread[5];
-
+    private static final Logger logger = Logger.getLogger(AggregationServer.class.getName());
 
     public static List<WeatherObject> getFeed() {
         List<WeatherObject> feed = new ArrayList<>();
@@ -30,17 +34,19 @@ public class AggregationServer {
 
                 WeatherObject recentWeather = weatherList.get(weatherList.size() - 1);
                 feed.add(recentWeather);
+            } else {
+                logger.log(Level.SEVERE, "Failed to send weather feed (empty feed)...\n");
             }
         }
         return feed;
     }
 
-    public static void updateStationHeartbeat(WeatherObject weather) {
+    public synchronized static void updateStationHeartbeat(WeatherObject weather) {
         int stationId = weather.getStationId();
         stationHeartbeat.put(stationId, true);
     }
 
-    public static void addWeatherData(WeatherObject weather) {
+    public synchronized static void addWeatherData(WeatherObject weather) {
 
         // Add weather/update heartbeat for station
         updateStationHeartbeat(weather);
@@ -74,8 +80,11 @@ public class AggregationServer {
         }
     }
 
-    public static String buildMsg(BufferedReader bufferedReader, String reqType) {
+    public static String buildMsg(BufferedReader bufferedReader, String msg, String reqType) {
         StringBuilder content = new StringBuilder();
+
+        content.append(msg).append("\n");
+
         try {
             boolean isContent = false;
             while (true) {
@@ -92,7 +101,7 @@ public class AggregationServer {
                 content.append(line).append("\n");
             }
         } catch (IOException e) {
-            System.out.println("Error: Failed to build request into a string...");
+            logger.log(Level.SEVERE, "Failed to build request into a string..." + e.getMessage() + "\n", e);
         }
         return content.toString().trim();
     }
@@ -103,7 +112,7 @@ public class AggregationServer {
             String requestBody = msg.substring(contentIndex);
             return requestBody;
         } else {
-            System.out.println("Error: No content found in the body of the request...");
+            logger.log(Level.SEVERE, "No content found in the body of the request...\n");
             return null;
         }
     }
@@ -127,38 +136,38 @@ public class AggregationServer {
         
         try {
             if (msg.length() < 3) {
-                System.out.println("Error: Request receieved was too short...");
-                bufferedWriter.write("Error: Request too short, please try again...");
+                logger.log(Level.SEVERE, "Request receieved was invalid...\n");
+                bufferedWriter.write("HTTP/1.1 400 Bad Request");
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             } else {
                 switch (msg.substring(0, 3)) {
                     case "PUT":
-                        msg = buildMsg(bufferedReader, "PUT");
+                        msg = buildMsg(bufferedReader, msg, "PUT");
                         handlePutReq(bufferedWriter, msg);
                         break;
                     case "GET":
-                        msg = buildMsg(bufferedReader, "GET");
+                        msg = buildMsg(bufferedReader, msg, "GET");
                         handleGetReq(bufferedWriter, msg);
                         break;
                     case "POS":
-                        msg = buildMsg(bufferedReader, "POST");
+                        msg = buildMsg(bufferedReader, msg, "POST");
                         handlePostReq(bufferedWriter, msg);
                         break;
                     default:
                         System.out.println("Client: " + msg);
-        
+
+                        logger.log(Level.SEVERE, "Request receieved was invalid...\n");
+
                         bufferedWriter.write("HTTP/1.1 400 Bad Request");
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
                         break;
                 }
             }
-
         } catch (IOException e) {
-            System.out.println("Error: Failed to handle req properly...");
+            logger.log(Level.SEVERE, "Failed to handle req properly..." + e.getMessage() + "\n", e);
         }
-
     }
 
     public static void updateWeatherValue() {
@@ -189,8 +198,8 @@ public class AggregationServer {
     
     public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
-        System.out.println("PUT request:\n" + msg + "\n");
-        
+        logger.log(Level.INFO, "PUT request has been received...\n" + msg + "\n");
+
         try {
     
             bufferedWriter.write("PUT request received!");
@@ -220,9 +229,9 @@ public class AggregationServer {
                     WeatherObject weather = gson.fromJson(entry, WeatherObject.class);
                     weatherData.add(weather);
                     addWeatherData(weather);
-                } catch (JsonSyntaxException e) {
-                    System.err.println("Error: Failed to parse JSON...");
+                } catch (JsonSyntaxException e) {    
                     putResponse = "HTTP/1.1 500 Internal Server Error";
+                    logger.log(Level.SEVERE, "Failed to parse JSON..." + e.getMessage(), e);
                 }
             }
 
@@ -246,20 +255,16 @@ public class AggregationServer {
             bufferedWriter.flush();
     
         } catch (IOException e) {
-            System.out.println("Error: Failed to process PUT request...");
+            logger.log(Level.SEVERE, "Failed to process PUT request..." + e.getMessage(), e);
         }
     
     }
 
     public static void handleGetReq(BufferedWriter bufferedWriter, String msg) {
         
-        System.out.println("GET request:\n" + msg + "\n");
+        logger.log(Level.INFO, "GET request has been received..." + msg + "\n");
 
         try {
-    
-            bufferedWriter.write("GET request received!");
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
 
             List<WeatherObject> feed = getFeed();
 
@@ -281,9 +286,9 @@ public class AggregationServer {
                     + "Content-Length: " + contentLength +"\r\n\r";
 
             for (String entry : json) {
-                response += "\n" + entry; 
+                response += "\n" + entry + "\r"; 
             }
-            response += "\r\n";
+            response += "\n";
     
             System.out.println(response);
 
@@ -292,13 +297,14 @@ public class AggregationServer {
             bufferedWriter.flush();
 
         } catch (IOException e) {
-            System.out.println("Error: Failed to process GET request...");
+            logger.log(Level.SEVERE, "Failed to process GET request..." + e.getMessage(), e);        
+
         }
     }
 
     public static void handlePostReq(BufferedWriter bufferedWriter, String msg) {
         
-        System.out.println("POST request:\n" + msg + "\n");
+        logger.log(Level.INFO, "POST request has been received...\n" + msg  + "\n");
 
         try {
     
@@ -308,15 +314,17 @@ public class AggregationServer {
             
             // extract stationID
             msg = getBody(msg);
-            int stationId = extractStationId(msg);
+            int stationId = -1;
+            if (!msg.equals("Retrying connection")) {
+                stationId = extractStationId(msg);
 
-            // update stationId to true
-            if (stationId != -1){
-                handleHeartbeat(stationId);
-            } else {
-                System.out.println("Error: Failed to extract stationId from POST req...");
+                // update stationId to true
+                if (stationId != -1){
+                    handleHeartbeat(stationId);
+                } else {
+                    logger.log(Level.SEVERE, "Failed to extract stationId from POST req...");        
+                }
             }
-
 
             String response = "HTTP/1.1 200 OK\r\n\r\n";
     
@@ -325,7 +333,8 @@ public class AggregationServer {
             bufferedWriter.flush();
 
         } catch (IOException e) {
-            System.out.println("Error: Failed to process POST request...");
+            logger.log(Level.SEVERE, "Failed to process POST request..." + e.getMessage(), e);        
+
         }
     }
 
@@ -346,31 +355,36 @@ public class AggregationServer {
         return stationId;
     }
 
-    public static String weatherDataMapToJson() {
+    public synchronized static String weatherDataMapToJson() {
 
-        StringBuilder fullJson = new StringBuilder();
-        Gson gson = new Gson();
+        StringBuilder fullJson = null;
 
-        for (List<WeatherObject> weatherData : weatherDataMap.values()) {
-            for (WeatherObject weather : weatherData) {
-                String json = gson.toJson(weather);
-                fullJson.append(json).append("\n");
+        try {
+            fullJson = new StringBuilder();
+            Gson gson = new Gson();
+    
+            for (List<WeatherObject> weatherData : weatherDataMap.values()) {
+                for (WeatherObject weather : weatherData) {
+                    String json = gson.toJson(weather);
+                    fullJson.append(json).append("\n");
+                }
             }
+        } catch (JsonSyntaxException e) {
+            logger.log(Level.SEVERE, "Failed to convert weather entries to JSON..." + e.getMessage() + "\n", e);
         }
         return fullJson.toString();
     }
 
-    private static void saveWeatherData(String json) {
+    private synchronized static void saveWeatherData(String json) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("filesystem/weather.json"))) {
             bufferedWriter.write(json);
             bufferedWriter.newLine();
         } catch (IOException e){
-            System.out.println("Error: Failed save weather data...");
+            logger.log(Level.SEVERE, "Failed to save weather data..." + e.getMessage() + "\n", e);        
         }
-        System.out.println("Weather data has been saved...");
     }
 
-    public static void uploadWeatherData() {
+    public synchronized static void uploadWeatherData() {
 
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader("filesystem/weather.json"))) {
 
@@ -378,22 +392,17 @@ public class AggregationServer {
             String line;
 
             while ((line = bufferedReader.readLine()) != null) {
-
                 if (!line.isEmpty()) {
-
                     WeatherObject weather = gson.fromJson(line, WeatherObject.class);
                     addWeatherData(weather);
-
                 }
-                
             }
-
         } catch (IOException e) {
-            System.out.println("Error: Failed to upload weather data from local filesystem...");
+            logger.log(Level.SEVERE, "Failed to upload weather data from local filesystem..." + e.getMessage() + "\n", e);
         }
     }
 
-    public static void removeStationWeather(int stationId) {
+    public synchronized static void removeStationWeather(int stationId) {
         Iterator<Map.Entry<String, List<WeatherObject>>> iterator = weatherDataMap.entrySet().iterator();
     
         while (iterator.hasNext()) {
@@ -416,7 +425,7 @@ public class AggregationServer {
         }
     }
 
-    public static void handleHeartbeat(int stationId) {
+    public synchronized static void handleHeartbeat(int stationId) {
         for (Map.Entry<Integer, Boolean> entry : stationHeartbeat.entrySet()) {
             int stationIdMap = entry.getKey();
             if (stationIdMap == stationId) {
@@ -426,17 +435,15 @@ public class AggregationServer {
         }
     }
     
-    public static void checkHeartbeat() {
+    public synchronized static void checkHeartbeat() {
         for (Map.Entry<Integer, Boolean> entry : stationHeartbeat.entrySet()) {
             int stationId = entry.getKey();
             if (entry.getValue() == true){
                 stationHeartbeat.put(stationId, false);
             } else {
-                System.out.println("Weather from stationId: " + stationId + " has been removed...");
                 removeStationWeather(stationId);
-            }
-
-            
+                logger.log(Level.INFO, "Weather from stationId: " + stationId + " has been removed...\n");
+            }   
         }
     }
 
@@ -445,6 +452,7 @@ public class AggregationServer {
 
             String json = weatherDataMapToJson();
             saveWeatherData(json);
+            logger.log(Level.INFO, "Weather data has been saved...\n");
 
         }
     };
@@ -453,13 +461,14 @@ public class AggregationServer {
         public void run() {
 
             checkHeartbeat();
+            logger.log(Level.INFO, "Checking if heartbeat has been recieved for all weather stations...\n");
 
         }
     };
         
     public static void main(String[] args) {
 
-        int maxClients = 2;
+        int maxClients = 1;
         Socket socket = null;
         ServerSocket serverSocket = null;
         InputStreamReader inputStreamReader = null;
@@ -468,12 +477,22 @@ public class AggregationServer {
         BufferedWriter bufferedWriter = null;
         String serverAddress = "localhost";
         int port = 4567;
+        logger.setLevel(Level.INFO);
+
+        // Start logging 
+        try {
+            FileHandler fileHandler = new FileHandler("logs/aggregationServer.log");
+            fileHandler.setFormatter(new SimpleFormatter());
+    
+            logger.addHandler(fileHandler);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to create log file: " + e.getMessage() + "\n", e);
+        }
+
 
         if (args.length == 1){
             port = Integer.parseInt(args[0]);
         }
-
-        System.out.println("Starting aggregation server on port: " + port);
 
         // Upload weather from local filesystem
         File weatherFile = new File("filesystem/weather.json");
@@ -491,7 +510,8 @@ public class AggregationServer {
         }
 
         try {
-            
+
+            logger.log(Level.INFO, "Starting aggregation server on port: " + port + "\n");
             serverSocket = new ServerSocket(port);
 
             while (true) {
@@ -499,15 +519,19 @@ public class AggregationServer {
                 try {
 
                     socket = serverSocket.accept();
-                    int i = 0;
-                    for (i = 0; i < maxClients; i++){
-                        if (threads[i] == null){
-                            threads[i] = new ClientThread(socket);
-                            new Thread(threads[i]).start();
-                            break;
-                        }
-                    }               
 
+                    int i = 1;
+                    synchronized (threads) {
+                        for (i = 0; i < maxClients; i++) {
+                            System.out.println(threads[i]);
+                            if (threads[i] == null) {
+                                threads[i] = new ClientThread(socket);
+                                new Thread(threads[i]).start();
+                                break;
+                            }
+                        }
+                    }    
+                    
                     if (i == maxClients) {
                         outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
                         bufferedWriter = new BufferedWriter(outputStreamWriter);
@@ -515,18 +539,19 @@ public class AggregationServer {
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
 
+                        logger.log(Level.INFO, "Connection from a client has been received but server is too busy...\n");
+
                         socket.close();
                         outputStreamWriter.close();
                         bufferedWriter.close();
                     }
-
                 } catch (IOException e) {
-                    System.out.println("Aggregation server socket was closed...");
+                    logger.log(Level.SEVERE, "Aggregation server socket was unexxpectdly closed...\n");
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Aggregation server could not listen on port: " + port);
+            logger.log(Level.SEVERE, "Aggregation server failed to listen on port: " + port + "\n");
         }
     }
 }
