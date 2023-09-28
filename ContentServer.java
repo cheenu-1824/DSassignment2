@@ -283,7 +283,7 @@ public class ContentServer {
             String response = "";
 
             try {
-                Thread.sleep(6000);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 System.out.println("Failed to wait");
             }
@@ -507,7 +507,7 @@ public class ContentServer {
             }
 
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-            executor.scheduleWithFixedDelay(sendHeartbeatPeriodically(serverAddress, port), 0, 15, TimeUnit.SECONDS);
+            executor.scheduleWithFixedDelay(sendHeartbeatPeriodically(serverAddress, port), 0, 150, TimeUnit.MILLISECONDS);
 
         }
     }
