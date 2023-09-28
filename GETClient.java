@@ -82,9 +82,10 @@ public class GETClient {
 
     public static String getBody(String msg) {
 
-        System.out.println("HER: " + msg);
-
-        if (msg.charAt(msg.length() - 1) == '0') {
+        if (msg.length() == 0) {
+            System.out.println("Error: No content found in the request, please request again...");
+            return null;
+        } else if (msg.charAt(msg.length() - 1) == '0') {
             System.out.println("Error: No content found in the body of the request, please request again...");
             return null;
         }
@@ -160,11 +161,13 @@ public class GETClient {
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
                 
-                getReq(bufferedWriter);
+                postReq(bufferedWriter);
 
                 while ((response = bufferedReader.readLine()) != null) {
                     System.out.println("Server: " + response);
                     if (!response.equals("Server too busy. Please try again later...")) {
+                        response = bufferedReader.readLine();
+                        System.out.println("Server: " + response);
                         return socket;
                     }
                 }
@@ -205,7 +208,6 @@ public class GETClient {
             System.out.println();
         }
     }
-
     public static void main(String[] args) {
 
         Socket socket = null;
@@ -235,14 +237,6 @@ public class GETClient {
             bufferedReader = new BufferedReader(inputStreamReader);
             bufferedWriter = new BufferedWriter(outputStreamWriter);
 
-           //String response = bufferedReader.readLine();
-
-            //Retry if server is busy
-           // System.out.println(response);
-           //if (response.equals("Server too busy. Please try again later...")) {
-             //  socket = retryConnection(serverAddress, port);
-           //}
-
             getReq(bufferedWriter);
             boolean sentReq = true;
 
@@ -251,18 +245,27 @@ public class GETClient {
 
             if (!response.equals("HTTP/1.1 200 OK")) {
                 sentReq = false;
-                socket = retryConnection(serverAddress, port);
-                System.out.println("Servdsdser: ");
 
-                inputStreamReader = new InputStreamReader(socket.getInputStream());
-                outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-                bufferedReader = new BufferedReader(inputStreamReader);
-                bufferedWriter = new BufferedWriter(outputStreamWriter);
-                System.out.println("Servdsdser: ");
+                if (socket != null) {
+                    socket.close();
+                }
+
+                socket = retryConnection(serverAddress, port);
+                if (socket != null) {
+                    inputStreamReader = new InputStreamReader(socket.getInputStream());
+                    outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+                    bufferedReader = new BufferedReader(inputStreamReader);
+                    bufferedWriter = new BufferedWriter(outputStreamWriter);
+                } else {
+                    System.err.println("Error: Failed to establish a connection to the server, please reconnect to restore weather data to the server");
+                }
+            }
+
+            if (sentReq == false && socket != null) {
+                getReq(bufferedWriter);
 
                 response = bufferedReader.readLine();
                 System.out.println("Server: " + response);
-
             }
 
             List<WeatherObject> weatherData = handleReq(bufferedReader, bufferedWriter);
@@ -274,8 +277,6 @@ public class GETClient {
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
     
-                System.out.println("Server: " + bufferedReader.readLine());
-
                 if (socket != null) {
                     socket.close();
                 }
@@ -295,11 +296,14 @@ public class GETClient {
             }
 
             displayWeather(weatherData);
+
+            // Function for testing 
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
                 System.out.println("Failed to wait");
             }
+
             String msg = "BYE";
             bufferedWriter.write(msg);
             bufferedWriter.newLine();
@@ -309,7 +313,6 @@ public class GETClient {
 
             if (msg.equalsIgnoreCase("BYE")){
                 System.out.println("Request was handled sucessfully...");
-
             } else {
                 System.out.println("Failed to handle request sucessfully...");
             }
@@ -341,11 +344,9 @@ public class GETClient {
             } catch (IOException e){
                 System.out.println("Error occured when closing objects...");
                 e.printStackTrace();
-
             }
-
         }
-
     }
+
 }
 

@@ -48,7 +48,6 @@ public class AggregationServer {
 
     public synchronized static void addWeatherData(WeatherObject weather) {
 
-        // Add weather/update heartbeat for station
         updateStationHeartbeat(weather);
 
         String weatherId = weather.getId();
@@ -464,8 +463,7 @@ public class AggregationServer {
             logger.log(Level.INFO, "Checking if heartbeat has been recieved for all weather stations...\n");
 
         }
-    };
-        
+    };       
     public static void main(String[] args) {
 
         int maxClients = 1;
@@ -475,7 +473,6 @@ public class AggregationServer {
         OutputStreamWriter outputStreamWriter = null;
         BufferedReader bufferedReader = null;
         BufferedWriter bufferedWriter = null;
-        String serverAddress = "localhost";
         int port = 4567;
         logger.setLevel(Level.INFO);
 
@@ -554,4 +551,5 @@ public class AggregationServer {
             logger.log(Level.SEVERE, "Aggregation server failed to listen on port: " + port + "\n");
         }
     }
+
 }

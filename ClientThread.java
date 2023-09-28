@@ -6,7 +6,6 @@ public class ClientThread implements Runnable{
     private Socket socket = null;;
     private boolean exitThread = false;
 
-
     public ClientThread(Socket socket) {
         this.socket = socket;
     }
@@ -14,9 +13,6 @@ public class ClientThread implements Runnable{
     public void run() {
 
         int maxClients = 1;
-
-        //Thread timer = new Thread(this::waitForError);
-        //timer.start();
 
         try {
 
@@ -41,6 +37,7 @@ public class ClientThread implements Runnable{
                 if (!exitThread) {
                     AggregationServer.handleReq(bufferedReader, bufferedWriter, msg);
                 }
+
             }
 
             synchronized (AggregationServer.threads) {
@@ -60,19 +57,7 @@ public class ClientThread implements Runnable{
 
         } catch (IOException e) {
             System.out.println("Error: Failed to start threaded client socket...");
-
         } 
     }
-
-    // private void waitForError() {
-    //     try {
-    //         Thread.sleep(15000);
-    //         System.out.println("YEAaaaaar Thread to finish...");
-
-    //     } catch (InterruptedException e) {
-    //         System.out.println("Error: Failed to wait for Thread to finish...");
-    //     }
-    //     exitThread = true;
-    // }
 
 }
