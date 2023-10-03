@@ -1,6 +1,8 @@
 import java.net.*;
 import java.io.*;
 
+import lib.*;
+
 public class ClientThread implements Runnable{
 
     private Socket socket = null;;
@@ -24,17 +26,14 @@ public class ClientThread implements Runnable{
             while (true) {
 
                 String msg = bufferedReader.readLine();
-                System.out.println("ssHERE");
-                System.out.println(msg);
+                System.out.println("MSG:  " + msg);
 
                 if (msg.equalsIgnoreCase("BYE")) {
-                    bufferedWriter.write("BYE!");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    Http.write(bufferedWriter, "BYE!\r\n");
                     break;
                 }
 
-                if (!exitThread) {
+                if (!exitThread) { // for some reason its not receive by msg
                     AggregationServer.handleReq(bufferedReader, bufferedWriter, msg);
                 }
 
@@ -48,12 +47,12 @@ public class ClientThread implements Runnable{
                     }
                 }
             }
-
-            socket.close();
-            inputStreamReader.close();
-            outputStreamWriter.close();
-            bufferedReader.close();
-            bufferedWriter.close();
+            
+            Tool.closeSocket(socket);
+            Tool.closeInputStreamReader(inputStreamReader);
+            Tool.closeOutputStreamWriter(outputStreamWriter);
+            Tool.closeBufferedReader(bufferedReader);
+            Tool.closeBufferedWriter(bufferedWriter);
 
         } catch (IOException e) {
             System.out.println("Error: Failed to start threaded client socket...");

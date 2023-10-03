@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import lib.*;
+
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +28,22 @@ public class AggregationServer {
     private static Map<Integer, Boolean> stationHeartbeat = new HashMap<>();
     public static ClientThread[] threads = new ClientThread[5];
     private static final Logger logger = Logger.getLogger(AggregationServer.class.getName());
+
+    private static Socket socket = null;
+    private static ServerSocket serverSocket = null;
+    private static InputStreamReader inputStreamReader = null;
+    private static OutputStreamWriter outputStreamWriter = null;
+    private static BufferedReader bufferedReader = null;
+    private static BufferedWriter bufferedWriter = null;
+
+    public static void setReaderWriter(Socket socket) throws IOException {
+        
+        inputStreamReader = new InputStreamReader(socket.getInputStream());
+        outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+        bufferedReader = new BufferedReader(inputStreamReader);
+        bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+    }
 
     public static List<WeatherObject> getFeed() {
         List<WeatherObject> feed = new ArrayList<>();
@@ -88,7 +107,8 @@ public class AggregationServer {
             boolean isContent = false;
             while (true) {
                 String line = bufferedReader.readLine();
-                if (line.isEmpty()) {
+                System.out.println("LINE: " + line);
+                if (line.isBlank()) {
                     if (reqType == "GET") {
                         break;
                     } else if (isContent == true){
@@ -136,13 +156,14 @@ public class AggregationServer {
         try {
             if (msg.length() < 3) {
                 logger.log(Level.SEVERE, "Request receieved was invalid...\n");
-                bufferedWriter.write("HTTP/1.1 400 Bad Request");
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
+
+                Http.write(bufferedWriter, Http.HttpResponse(400));
+
             } else {
                 switch (msg.substring(0, 3)) {
                     case "PUT":
                         msg = buildMsg(bufferedReader, msg, "PUT");
+                        // maybe do lamport stuff here, find the time start and then execute the 
                         handlePutReq(bufferedWriter, msg);
                         break;
                     case "GET":
@@ -158,9 +179,8 @@ public class AggregationServer {
 
                         logger.log(Level.SEVERE, "Request receieved was invalid...\n");
 
-                        bufferedWriter.write("HTTP/1.1 400 Bad Request");
-                        bufferedWriter.newLine();
-                        bufferedWriter.flush();
+                        String response = Http.HttpResponse(400);
+                        Http.write(bufferedWriter, response);
                         break;
                 }
             }
@@ -200,19 +220,16 @@ public class AggregationServer {
         logger.log(Level.INFO, "PUT request has been received...\n" + msg + "\n");
 
         try {
-    
-            bufferedWriter.write("PUT request received!");
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            
+            Http.write(bufferedWriter, "PUT request received!\r\n");
 
             // CHECK IF FILE EXIST
             File weatherFile = new File("filesystem/weather.json");
             String putResponse = "";
             if (weatherFile.exists()) {
-                putResponse = "HTTP/1.1 200 OK\r\n\r\n";
+                putResponse = Http.HttpResponse(200);
             } else {
-                putResponse = "HTTP/1.1 201 Created\r\n"
-                + "Content-Location: /filesystem/weather.json\r\n\r\n";
+                putResponse = Http.HttpResponse(201);
             }
 
             // Increament all updateValue
@@ -229,17 +246,16 @@ public class AggregationServer {
                     weatherData.add(weather);
                     addWeatherData(weather);
                 } catch (JsonSyntaxException e) {    
-                    putResponse = "HTTP/1.1 500 Internal Server Error";
+                    putResponse = Http.HttpResponse(500);
                     logger.log(Level.SEVERE, "Failed to parse JSON..." + e.getMessage(), e);
                 }
             }
 
             if (json.size() == 0) {
-                putResponse = "HTTP/1.1 204 No Content\r\n";
+                putResponse = Http.HttpResponse(204);
             }
 
-            if (putResponse == "HTTP/1.1 201 Created\r\n"
-            + "Content-Location: /filesystem/weather.json\r\n\r\n") {
+            if (putResponse == "HTTP/1.1 201 Created\r\n"){
                 saveWeatherPeriodically.run();
             }
 
@@ -249,9 +265,7 @@ public class AggregationServer {
             //Testing
             printWeatherMap();
 
-            bufferedWriter.write(putResponse);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, putResponse);
     
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to process PUT request..." + e.getMessage(), e);
@@ -280,20 +294,16 @@ public class AggregationServer {
                 contentLength += entry.length();
             }
 
-            String response = "HTTP/1.1 200 OK\r\n"
-                    + "Content-Type: application/json\r\n" // I NEED TO WORK THIS OUT
-                    + "Content-Length: " + contentLength +"\r\n\r";
+            String response = Http.HttpResponse(200, contentLength);
 
             for (String entry : json) {
-                response += "\n" + entry + "\r"; 
+                response += entry + "\r\n"; 
             }
-            response += "\n";
+            response += "\r\n";
     
             System.out.println(response);
 
-            bufferedWriter.write(response);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, response);
 
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to process GET request..." + e.getMessage(), e);        
@@ -307,9 +317,7 @@ public class AggregationServer {
 
         try {
     
-            bufferedWriter.write("POST request received!");
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, "POST request received!\r\n");
             
             // extract stationID
             msg = getBody(msg);
@@ -325,11 +333,10 @@ public class AggregationServer {
                 }
             }
 
-            String response = "HTTP/1.1 200 OK\r\n\r\n";
+            String response = Http.HttpResponse(200);
+
     
-            bufferedWriter.write(response);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, response);
 
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to process POST request..." + e.getMessage(), e);        
@@ -467,12 +474,6 @@ public class AggregationServer {
     public static void main(String[] args) {
 
         int maxClients = 1;
-        Socket socket = null;
-        ServerSocket serverSocket = null;
-        InputStreamReader inputStreamReader = null;
-        OutputStreamWriter outputStreamWriter = null;
-        BufferedReader bufferedReader = null;
-        BufferedWriter bufferedWriter = null;
         int port = 4567;
         logger.setLevel(Level.INFO);
 
@@ -520,7 +521,7 @@ public class AggregationServer {
                     int i = 1;
                     synchronized (threads) {
                         for (i = 0; i < maxClients; i++) {
-                            System.out.println(threads[i]);
+                            System.out.println(threads[i]); // printing null for some reason wait its fine cause first should be null
                             if (threads[i] == null) {
                                 threads[i] = new ClientThread(socket);
                                 new Thread(threads[i]).start();
@@ -530,17 +531,17 @@ public class AggregationServer {
                     }    
                     
                     if (i == maxClients) {
-                        outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-                        bufferedWriter = new BufferedWriter(outputStreamWriter);
-                        bufferedWriter.write("Server too busy. Please try again later...");
-                        bufferedWriter.newLine();
-                        bufferedWriter.flush();
+
+                        setReaderWriter(socket);
+
+                        Http.write(bufferedWriter, "Server too busy. Please try again later...\r\n");
 
                         logger.log(Level.INFO, "Connection from a client has been received but server is too busy...\n");
 
-                        socket.close();
-                        outputStreamWriter.close();
-                        bufferedWriter.close();
+                        Tool.closeSocket(socket);
+                        Tool.closeOutputStreamWriter(outputStreamWriter);
+                        Tool.closeBufferedWriter(bufferedWriter);
+
                     }
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "Aggregation server socket was unexxpectdly closed...\n");

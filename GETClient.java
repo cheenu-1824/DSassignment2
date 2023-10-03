@@ -6,7 +6,24 @@ import java.util.ArrayList;
 
 import com.google.gson.Gson;
 
+import lib.*;
+
 public class GETClient {
+
+    private static Socket socket = null;
+    private static InputStreamReader inputStreamReader = null;
+    private static OutputStreamWriter outputStreamWriter = null;
+    private static BufferedReader bufferedReader = null;
+    private static BufferedWriter bufferedWriter = null;
+
+    public static void setReaderWriter(Socket socket) throws IOException {
+        
+        inputStreamReader = new InputStreamReader(socket.getInputStream());
+        outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+        bufferedReader = new BufferedReader(inputStreamReader);
+        bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+    }
 
     public static String[] parseURL(String url) {
         String[] splitURL = url.split(":");
@@ -22,11 +39,9 @@ public class GETClient {
 
         String getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
                     + "Host: " + "host" + "\r\n\r\n";
-
         try {
 
-            bufferedWriter.write(getMessage);
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, getMessage);
 
         } catch (IOException e ){
             System.out.println("Error: Failed to send GET request the the server...");
@@ -38,19 +53,14 @@ public class GETClient {
 
         String content = "Retrying connection\r\n";
         int contentLength = content.length();
-        String putMessage = "POST / HTTP/1.1\r\n"
-                    + "User-Agent: ATOMClient/1/0\r\n"
-                    + "Content-Type: text/plain\r\n" // I NEED TO WORK THIS OUT
-                    + "Content-Length: " + contentLength + "\r\n\r\n"
-                    + content;
 
-        System.out.println(putMessage);
+        String postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
+
+        System.out.println(postMessage);
 
         try {
 
-            bufferedWriter.write(putMessage);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, postMessage);
 
         } catch (IOException e ){
             System.out.println("Error: Failed to send POST request to the server...");
@@ -90,7 +100,8 @@ public class GETClient {
             return null;
         }
 
-        int contentIndex = msg.indexOf("{");
+        //int contentIndex = msg.indexOf("{");
+        int contentIndex = msg.indexOf("\n\n");
         if (contentIndex != -1) {
             String requestBody = msg.substring(contentIndex);
             return requestBody;
@@ -172,7 +183,7 @@ public class GETClient {
                     }
                 }
                 System.err.println("Error: Server is still busy, retrying...");
-                socket.close();
+                Tool.closeSocket(socket);
             } catch (IOException e) {
                 System.err.println("Error: Failed to retry connection to the server...");
             }
@@ -210,11 +221,6 @@ public class GETClient {
     }
     public static void main(String[] args) {
 
-        Socket socket = null;
-        InputStreamReader inputStreamReader = null;
-        OutputStreamWriter outputStreamWriter = null;
-        BufferedReader bufferedReader = null;
-        BufferedWriter bufferedWriter = null;
         String serverAddress = "localhost";
         int port = 4567;
 
@@ -231,11 +237,7 @@ public class GETClient {
 
             socket = new Socket(serverAddress, port);
 
-            inputStreamReader = new InputStreamReader(socket.getInputStream());
-            outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-
-            bufferedReader = new BufferedReader(inputStreamReader);
-            bufferedWriter = new BufferedWriter(outputStreamWriter);
+            setReaderWriter(socket);
 
             getReq(bufferedWriter);
             boolean sentReq = true;
@@ -246,16 +248,11 @@ public class GETClient {
             if (!response.equals("HTTP/1.1 200 OK")) {
                 sentReq = false;
 
-                if (socket != null) {
-                    socket.close();
-                }
+                Tool.closeSocket(socket);
 
                 socket = retryConnection(serverAddress, port);
                 if (socket != null) {
-                    inputStreamReader = new InputStreamReader(socket.getInputStream());
-                    outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-                    bufferedReader = new BufferedReader(inputStreamReader);
-                    bufferedWriter = new BufferedWriter(outputStreamWriter);
+                    setReaderWriter(socket);
                 } else {
                     System.err.println("Error: Failed to establish a connection to the server, please reconnect to restore weather data to the server");
                 }
@@ -272,26 +269,18 @@ public class GETClient {
 
             if (weatherData == null) {
 
-                String msg = "BYE";
+                String msg = "BYE\r\n";
+                Http.write(bufferedWriter, msg);
                 bufferedWriter.write(msg);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
     
-                if (socket != null) {
-                    socket.close();
-                }
-                if (inputStreamReader != null) {
-                    inputStreamReader.close();
-                }
-                if (outputStreamWriter != null) {
-                    outputStreamWriter.close();
-                }
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-                if (bufferedWriter != null) {
-                    bufferedWriter.close();
-                }
+                Tool.closeSocket(socket);
+                Tool.closeInputStreamReader(inputStreamReader);
+                Tool.closeOutputStreamWriter(outputStreamWriter);
+                Tool.closeBufferedReader(bufferedReader);
+                Tool.closeBufferedWriter(bufferedWriter);
+
                 System.exit(1);
             }
 
@@ -299,7 +288,7 @@ public class GETClient {
 
             // Function for testing 
             try {
-                Thread.sleep(50);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 System.out.println("Failed to wait");
             }
@@ -325,21 +314,11 @@ public class GETClient {
             
             try {
 
-                if (socket != null) {
-                    socket.close();
-                }
-                if (inputStreamReader != null) {
-                    inputStreamReader.close();
-                }
-                if (outputStreamWriter != null) {
-                    outputStreamWriter.close();
-                }
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-                if (bufferedWriter != null) {
-                    bufferedWriter.close();
-                }
+                Tool.closeSocket(socket);
+                Tool.closeInputStreamReader(inputStreamReader);
+                Tool.closeOutputStreamWriter(outputStreamWriter);
+                Tool.closeBufferedReader(bufferedReader);
+                Tool.closeBufferedWriter(bufferedWriter);
 
             } catch (IOException e){
                 System.out.println("Error occured when closing objects...");
@@ -347,6 +326,5 @@ public class GETClient {
             }
         }
     }
-
 }
 

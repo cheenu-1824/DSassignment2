@@ -1,4 +1,5 @@
 import java.net.*;
+import java.security.cert.TrustAnchor;
 import java.io.*;
 import java.util.Scanner;
 import java.util.List;
@@ -12,10 +13,26 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.gson.Gson;
 
+import lib.*;
+
 
 public class ContentServer {
 
     private static int stationId = -1;
+    private static Socket socket = null;
+    private static InputStreamReader inputStreamReader = null;
+    private static OutputStreamWriter outputStreamWriter = null;
+    private static BufferedReader bufferedReader = null;
+    private static BufferedWriter bufferedWriter = null;
+
+    public static void setReaderWriter(Socket socket) throws IOException {
+        
+        inputStreamReader = new InputStreamReader(socket.getInputStream());
+        outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+        bufferedReader = new BufferedReader(inputStreamReader);
+        bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+    }
 
     public static String[] parseURL(String url) {
         String[] splitURL = url.split(":");
@@ -143,7 +160,6 @@ public class ContentServer {
                 iterator.remove();
             }
         }
-
         return weatherData;
     }
 
@@ -154,23 +170,24 @@ public class ContentServer {
         for (String entry : json) {
             contentLength += entry.length();
         }
+        
+        String body = "";
 
-        String putMessage = "PUT /filesystem/weather.json HTTP/1.1\r\n"
-                    + "User-Agent: ATOMClient/1/0\r\n"
-                    + "Content-Type: application/json\r\n" // I NEED TO WORK THIS OUT
-                    + "Content-Length: " + contentLength +"\r\n\r";
         for (String entry : json) {
-            putMessage += "\n" + entry; 
+            body += entry + "\n"; 
         }
-        putMessage += "\r\n";
+
+        if (!body.isEmpty()) {
+            body = body.substring(0, body.length() - 1);
+        }
+
+        String putMessage = Http.HttpRequest("PUT", "/content/weather.json", true, "application/json", contentLength, body);
 
         System.out.println(putMessage);
 
         try {
 
-            bufferedWriter.write(putMessage);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, putMessage);
 
         } catch (IOException e ){
             System.out.println("Error: Failed to send PUT request to the server...");
@@ -183,34 +200,28 @@ public class ContentServer {
         String content = "";
         int contentLength = 0;
 
-        String putMessage = "";
+        String postMessage = "";
 
         if (retry == true) {
             content = "Retrying connection\r\n";
             contentLength = content.length();
-            putMessage = "POST / HTTP/1.1\r\n"
-                    + "User-Agent: ATOMClient/1/0\r\n"
-                    + "Content-Type: text/plain\r\n" // I NEED TO WORK THIS OUT
-                    + "Content-Length: " + contentLength + "\r\n\r\n"
-                    + content;
+
+            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
+
         } else {
             content = "StationId: " + ContentServer.stationId + " is alive\r\n";
             contentLength = content.length();
-            putMessage = "POST / HTTP/1.1\r\n"
-                + "User-Agent: ATOMClient/1/0\r\n"
-                + "Content-Type: text/plain\r\n" // I NEED TO WORK THIS OUT
-                + "Content-Length: " + contentLength + "\r\n\r\n"
-                + content;
+
+            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
 
         }
 
-        System.out.println(putMessage);
+        System.out.println("SENDING POST MESSAGE!\r\n");
+        System.out.println(postMessage);
 
         try {
 
-            bufferedWriter.write(putMessage);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            Http.write(bufferedWriter, postMessage);
 
         } catch (IOException e ){
             System.out.println("Error: Failed to send POST request to the server...");
@@ -242,7 +253,7 @@ public class ContentServer {
                 
                 postReq(bufferedWriter, true);
 
-                while ((response = bufferedReader.readLine()) != null) {
+                while ((response = bufferedReader.readLine()) != null && !response.isEmpty()) {
                     System.out.println(response);
                     if (!response.equals("Server too busy. Please try again later...")) {
                         response = bufferedReader.readLine();
@@ -251,7 +262,9 @@ public class ContentServer {
                     }
                 }
                 System.err.println("Error: Server is still busy, retrying...");
-                socket.close();
+                Tool.closeSocket(socket);
+ 
+
             } catch (IOException e) {
                 System.err.println("Error: Failed to retry connection to the server...");
             }
@@ -277,36 +290,32 @@ public class ContentServer {
             bufferedReader = new BufferedReader(inputStreamReader);
             bufferedWriter = new BufferedWriter(outputStreamWriter);
 
+            setReaderWriter(socket);
+
             postReq(bufferedWriter, false);
             boolean sentReq = true;
 
             String response = "";
 
             try {
-                Thread.sleep(150);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 System.out.println("Failed to wait");
             }
 
-            while (true) {
-
                 response = bufferedReader.readLine();
-                System.out.println("Server: " + response);
-                
+                System.out.println(response);
+
                 // Retry if server is busy
                 if (response.equals("Server too busy. Please try again later...")) {
                     sentReq = false;
 
-                    if (socket != null) {
-                        socket.close();
-                    }
+                    Tool.closeSocket(socket);
 
                     socket = retryConnection(serverAddress, port);
                     if (socket != null) {
-                        inputStreamReader = new InputStreamReader(socket.getInputStream());
-                        outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-                        bufferedReader = new BufferedReader(inputStreamReader);
-                        bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+                        setReaderWriter(socket);
 
                         if (sentReq == false) {
                             postReq(bufferedWriter, false);
@@ -314,15 +323,18 @@ public class ContentServer {
 
                     } else {
                         System.err.println("Error: Failed to establish a connection to the server, please reconnect to restore weather data to the server");
-                        break;
                     }
                 }
-                
-                if (response != null || response.isEmpty()) {
-                    bufferedWriter.write("BYE");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                    System.out.println("Server: " + bufferedReader.readLine());
+            
+            System.out.println("YEA"+ response); // issue is agg server receives random blank line
+            while (true) {
+
+                response = bufferedReader.readLine();
+                System.out.println(response);
+        
+                if (response != null && response.isBlank()) {
+                    Http.write(bufferedWriter, "BYE\r\n");
+                    System.out.println(bufferedReader.readLine());
                     break;
                 }
             }
@@ -333,21 +345,12 @@ public class ContentServer {
             
             try {
 
-                if (socket != null) {
-                    socket.close();
-                }
-                if (inputStreamReader != null) {
-                    inputStreamReader.close();
-                }
-                if (outputStreamWriter != null) {
-                    outputStreamWriter.close();
-                }
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-                if (bufferedWriter != null) {
-                    bufferedWriter.close();
-                } 
+                Tool.closeSocket(socket);
+                Tool.closeInputStreamReader(inputStreamReader);
+                Tool.closeOutputStreamWriter(outputStreamWriter);
+                Tool.closeBufferedReader(bufferedReader);
+                Tool.closeBufferedWriter(bufferedWriter);
+                
             } catch (IOException e){
                     System.out.println("Error occured when closing objects...");
                     e.printStackTrace();
@@ -366,11 +369,6 @@ public class ContentServer {
 
     public static void main(String[] args) {
         
-        Socket socket = null;
-        InputStreamReader inputStreamReader = null;
-        OutputStreamWriter outputStreamWriter = null;
-        BufferedReader bufferedReader = null;
-        BufferedWriter bufferedWriter = null;
         Scanner scanner = null;
         String serverAddress = "localhost";
         int port = 4567;
@@ -381,7 +379,7 @@ public class ContentServer {
         ContentServer.stationId = randomNumber;
 
         if (args.length != 2){
-            System.out.println("Incorrect parameters, input should be as follows: java ContentServer <domain:port> <filename>");
+            System.out.println("Incorrect parameters, input should be as follows: java ContentServer <domain:port> <file location>");
             System.exit(1);
         }
 
@@ -393,7 +391,6 @@ public class ContentServer {
 
         // Read file from file system
         String content = readFile(filename);
-        //System.out.println(content);
 
         // Split file into seperate entries
         List<String> weatherData = splitWeatherData(content);
@@ -412,46 +409,31 @@ public class ContentServer {
         List<String> json = new ArrayList<>();
         for (WeatherObject weather : weathers) {
             json.add(gson.toJson(weather));
-            //System.out.println(gson.toJson(weather));
         }
 
         try {
 
-            // Establish connection to aggregation server
             socket = new Socket(serverAddress, port);
 
-            inputStreamReader = new InputStreamReader(socket.getInputStream());
-            outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+            setReaderWriter(socket);
 
-            bufferedReader = new BufferedReader(inputStreamReader);
-            bufferedWriter = new BufferedWriter(outputStreamWriter);
-
-            scanner = new Scanner(System.in);
-
-            
-            // Send put request
             putReq(bufferedWriter, json);
             boolean sentReq = true;
             String response = "";
 
             response = bufferedReader.readLine();
-            System.out.println("Servers: " + response);
+            System.out.println(response);
 
-            // Retry if server is busy
             if (response.equals("Server too busy. Please try again later...")) {
                 sentReq = false;
                 socket = retryConnection(serverAddress, port);
                 if (socket != null) {
-                    inputStreamReader = new InputStreamReader(socket.getInputStream());
-                    outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-        
-                    bufferedReader = new BufferedReader(inputStreamReader);
-                    bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+                    setReaderWriter(socket);
 
                     if (sentReq == false) {
                         putReq(bufferedWriter, json);
                     }
-
                     response = bufferedReader.readLine();
                     System.out.println("Servers: " + response);
                 } else {
@@ -460,55 +442,39 @@ public class ContentServer {
                 }
             }
 
-            // make this a function
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                System.out.println("Failed to wait");
+            }
+
             while (true) {
 
                 response = bufferedReader.readLine();
-                System.out.println("Server: " + response);
-                
-                
-                if (response != null || response.isEmpty()) {
-                    bufferedWriter.write("BYE");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                    System.out.println("Server: " + bufferedReader.readLine());
+                System.out.println(response);
+    
+                if (response != null && response.isBlank()) {
+                    Http.write(bufferedWriter, "BYE\r\n");
+                    System.out.println(bufferedReader.readLine());
                     break;
                 }
             }
-
         } catch (IOException e){
             System.out.println("Connection to aggregation server was not established or lost...");
             e.printStackTrace();
-
         } finally {
-            
             try {
-
-                if (socket != null) {
-                    socket.close();
-                }
-                if (inputStreamReader != null) {
-                    inputStreamReader.close();
-                }
-                if (outputStreamWriter != null) {
-                    outputStreamWriter.close();
-                }
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-                if (bufferedWriter != null) {
-                    bufferedWriter.close();
-                }
-
+                Tool.closeSocket(socket);
+                Tool.closeInputStreamReader(inputStreamReader);
+                Tool.closeOutputStreamWriter(outputStreamWriter);
+                Tool.closeBufferedReader(bufferedReader);
+                Tool.closeBufferedWriter(bufferedWriter);
             } catch (IOException e){
                 System.out.println("Error occured when closing objects...");
                 e.printStackTrace();
-
             }
-
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-            executor.scheduleWithFixedDelay(sendHeartbeatPeriodically(serverAddress, port), 0, 150, TimeUnit.MILLISECONDS);
-
+            executor.scheduleWithFixedDelay(sendHeartbeatPeriodically(serverAddress, port), 2, 15, TimeUnit.SECONDS);
         }
     }
 }
