@@ -25,20 +25,10 @@ public class GETClient {
 
     }
 
-    public static String[] parseURL(String url) {
-        String[] splitURL = url.split(":");
-    
-        if (splitURL.length == 2) {
-            return splitURL;
-        } else {
-            throw new IllegalArgumentException("Invalid URL format: " + url + ". Correct usage: <domain>:<port>");
-        }
-    }
-
     public static void getReq(BufferedWriter bufferedWriter) {
 
         String getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
-                    + "Host: " + "host" + "\r\n\r\n";
+                    + "Host: " + "localhost" + "\r\n\r\n";
         try {
 
             Http.write(bufferedWriter, getMessage);
@@ -90,27 +80,6 @@ public class GETClient {
         return content.toString().trim();
     }
 
-    public static String getBody(String msg) {
-
-        if (msg.length() == 0) {
-            System.out.println("Error: No content found in the request, please request again...");
-            return null;
-        } else if (msg.charAt(msg.length() - 1) == '0') {
-            System.out.println("Error: No content found in the body of the request, please request again...");
-            return null;
-        }
-
-        //int contentIndex = msg.indexOf("{");
-        int contentIndex = msg.indexOf("\n\n");
-        if (contentIndex != -1) {
-            String requestBody = msg.substring(contentIndex);
-            return requestBody;
-        } else {
-            System.out.println("Error: Content has been malformed...");
-            return null;
-        }
-    }
-
     public static List<String> splitJson(String msg) {
         String[] weatherData = msg.split("\\n");
         List<String> json = new ArrayList<>();
@@ -128,9 +97,9 @@ public class GETClient {
     public static List<WeatherObject> handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         
         String msg = buildMsg(bufferedReader);
-        String body = getBody(msg);
+        String body = Http.getBody(msg);
 
-        System.out.println("Server: GET req received!\n" + msg + "\n");
+        System.out.println(msg);
         
 
         if (body == null) {
@@ -139,7 +108,7 @@ public class GETClient {
 
         Gson gson = new Gson();
 
-        List<String> json = splitJson(getBody(msg));
+        List<String> json = splitJson(Http.getBody(msg));
         List<WeatherObject> weatherData = new ArrayList<>();
         
         for (String entry : json) {
@@ -175,10 +144,10 @@ public class GETClient {
                 postReq(bufferedWriter);
 
                 while ((response = bufferedReader.readLine()) != null) {
-                    System.out.println("Server: " + response);
+                    System.out.println(response);
                     if (!response.equals("Server too busy. Please try again later...")) {
                         response = bufferedReader.readLine();
-                        System.out.println("Server: " + response);
+                        System.out.println(response);
                         return socket;
                     }
                 }
@@ -194,7 +163,7 @@ public class GETClient {
 
     public static void displayWeather(List<WeatherObject> weatherData) {
 
-        System.out.println("<=====WEATHER FEED=====>\n");
+        System.out.println("\n\n<=====WEATHER FEED=====>\n");
 
         for (WeatherObject weather : weatherData) {
             System.out.println("ID: " + weather.getId());
@@ -230,7 +199,7 @@ public class GETClient {
         }
 
         // Parse URL in server address and port
-        String[] splitURL = parseURL(args[0]);
+        String[] splitURL = Tool.parseURL(args[0]);
         serverAddress = splitURL[0];
 
         try {
@@ -239,11 +208,11 @@ public class GETClient {
 
             setReaderWriter(socket);
 
-            getReq(bufferedWriter);
+            Http.getRequest(bufferedWriter);
             boolean sentReq = true;
 
             String response = bufferedReader.readLine();
-            System.out.println("Server: " + response);
+            System.out.println(response);
 
             if (!response.equals("HTTP/1.1 200 OK")) {
                 sentReq = false;
@@ -259,10 +228,10 @@ public class GETClient {
             }
 
             if (sentReq == false && socket != null) {
-                getReq(bufferedWriter);
+                Http.getRequest(bufferedWriter);
 
                 response = bufferedReader.readLine();
-                System.out.println("Server: " + response);
+                System.out.println(response);
             }
 
             List<WeatherObject> weatherData = handleReq(bufferedReader, bufferedWriter);
@@ -270,10 +239,9 @@ public class GETClient {
             if (weatherData == null) {
 
                 String msg = "BYE\r\n";
+
                 Http.write(bufferedWriter, msg);
-                bufferedWriter.write(msg);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
+
     
                 Tool.closeSocket(socket);
                 Tool.closeInputStreamReader(inputStreamReader);
@@ -293,14 +261,11 @@ public class GETClient {
                 System.out.println("Failed to wait");
             }
 
-            String msg = "BYE";
-            bufferedWriter.write(msg);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            String msg = "BYE\r\n";
+            Http.write(bufferedWriter, msg);
+            String finalResponse = bufferedReader.readLine();
 
-            System.out.println("Server: " + bufferedReader.readLine());
-
-            if (msg.equalsIgnoreCase("BYE")){
+            if (finalResponse.equals("BYE!")){
                 System.out.println("Request was handled sucessfully...");
             } else {
                 System.out.println("Failed to handle request sucessfully...");

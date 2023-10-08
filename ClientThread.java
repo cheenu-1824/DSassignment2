@@ -5,8 +5,7 @@ import lib.*;
 
 public class ClientThread implements Runnable{
 
-    private Socket socket = null;;
-    private boolean exitThread = false;
+    private Socket socket = null;
 
     public ClientThread(Socket socket) {
         this.socket = socket;
@@ -33,7 +32,7 @@ public class ClientThread implements Runnable{
                     break;
                 }
 
-                if (!exitThread) { // for some reason its not receive by msg
+                if (true) { // for some reason its not receive by msg
                     AggregationServer.handleReq(bufferedReader, bufferedWriter, msg);
                 }
 

@@ -124,17 +124,6 @@ public class AggregationServer {
         }
         return content.toString().trim();
     }
-
-    public static String getBody(String msg) {
-        int contentIndex = msg.indexOf("\n\n");
-        if (contentIndex != -1) {
-            String requestBody = msg.substring(contentIndex);
-            return requestBody;
-        } else {
-            logger.log(Level.SEVERE, "No content found in the body of the request...\n");
-            return null;
-        }
-    }
     
     public static List<String> splitJson(String msg) {
         String[] weatherData = msg.split("\\n");
@@ -155,9 +144,12 @@ public class AggregationServer {
         
         try {
             if (msg.length() < 3) {
+                System.out.println("yaaa"+msg);
                 logger.log(Level.SEVERE, "Request receieved was invalid...\n");
 
                 Http.write(bufferedWriter, Http.HttpResponse(400));
+                Tool.closeBufferedReader(bufferedReader);
+                Tool.closeBufferedWriter(bufferedWriter);
 
             } else {
                 switch (msg.substring(0, 3)) {
@@ -237,7 +229,7 @@ public class AggregationServer {
 
             Gson gson = new Gson();
 
-            List<String> json = splitJson(getBody(msg));
+            List<String> json = splitJson(Http.getBody(msg));
             List<WeatherObject> weatherData = new ArrayList<>();
             
             for (String entry : json) {
@@ -320,7 +312,7 @@ public class AggregationServer {
             Http.write(bufferedWriter, "POST request received!\r\n");
             
             // extract stationID
-            msg = getBody(msg);
+            msg = Http.getBody(msg);
             int stationId = -1;
             if (!msg.equals("Retrying connection")) {
                 stationId = extractStationId(msg);

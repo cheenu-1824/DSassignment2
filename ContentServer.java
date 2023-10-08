@@ -34,16 +34,6 @@ public class ContentServer {
 
     }
 
-    public static String[] parseURL(String url) {
-        String[] splitURL = url.split(":");
-    
-        if (splitURL.length == 2) {
-            return splitURL;
-        } else {
-            throw new IllegalArgumentException("Invalid URL format: " + url + ". Correct usage: <domain>:<port>");
-        }
-    }
-
     public static String readFile(String filename) {
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -152,7 +142,7 @@ public class ContentServer {
         return formattedWeatherData;
     }
 
-    public static List<String> removeInvalidWeather(List<String> weatherData) {
+    public static List<String> removeInvalidWeather(List<String> weatherData) { // eof thing needs to be implemented
         Iterator<String> iterator = weatherData.iterator();
         while (iterator.hasNext()) {
             String entry = iterator.next();
@@ -203,20 +193,19 @@ public class ContentServer {
         String postMessage = "";
 
         if (retry == true) {
-            content = "Retrying connection\r\n";
+            content = "Retrying connection";
             contentLength = content.length();
 
             postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
 
         } else {
-            content = "StationId: " + ContentServer.stationId + " is alive\r\n";
+            content = "StationId: " + ContentServer.stationId + " is alive";
             contentLength = content.length();
 
             postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
 
         }
 
-        System.out.println("SENDING POST MESSAGE!\r\n");
         System.out.println(postMessage);
 
         try {
@@ -290,12 +279,12 @@ public class ContentServer {
             bufferedReader = new BufferedReader(inputStreamReader);
             bufferedWriter = new BufferedWriter(outputStreamWriter);
 
-            setReaderWriter(socket);
-
             postReq(bufferedWriter, false);
             boolean sentReq = true;
-
             String response = "";
+
+            response = bufferedReader.readLine();
+            //System.out.println(response);
 
             try {
                 Thread.sleep(100);
@@ -303,10 +292,7 @@ public class ContentServer {
                 System.out.println("Failed to wait");
             }
 
-                response = bufferedReader.readLine();
-                System.out.println(response);
-
-                // Retry if server is busy
+                //Retry if server is busy
                 if (response.equals("Server too busy. Please try again later...")) {
                     sentReq = false;
 
@@ -315,7 +301,10 @@ public class ContentServer {
                     socket = retryConnection(serverAddress, port);
                     if (socket != null) {
 
-                        setReaderWriter(socket);
+                        inputStreamReader = new InputStreamReader(socket.getInputStream());
+                        outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+                        bufferedReader = new BufferedReader(inputStreamReader);
+                        bufferedWriter = new BufferedWriter(outputStreamWriter);
 
                         if (sentReq == false) {
                             postReq(bufferedWriter, false);
@@ -325,19 +314,8 @@ public class ContentServer {
                         System.err.println("Error: Failed to establish a connection to the server, please reconnect to restore weather data to the server");
                     }
                 }
-            
-            System.out.println("YEA"+ response); // issue is agg server receives random blank line
-            while (true) {
 
-                response = bufferedReader.readLine();
-                System.out.println(response);
-        
-                if (response != null && response.isBlank()) {
-                    Http.write(bufferedWriter, "BYE\r\n");
-                    System.out.println(bufferedReader.readLine());
-                    break;
-                }
-            }
+            Http.read(bufferedWriter, bufferedReader);
             
         } catch (IOException e) {
             System.out.println("Error: Failed to send heartbeat...");
@@ -384,7 +362,7 @@ public class ContentServer {
         }
 
         // Parse URL in server address and port
-        String[] splitURL = parseURL(args[0]);
+        String[] splitURL = Tool.parseURL(args[0]);
         serverAddress = splitURL[0];
         port = Integer.parseInt(splitURL[1]);
         filename = args[1];
@@ -422,7 +400,7 @@ public class ContentServer {
             String response = "";
 
             response = bufferedReader.readLine();
-            System.out.println(response);
+            //System.out.println(response);
 
             if (response.equals("Server too busy. Please try again later...")) {
                 sentReq = false;
@@ -435,7 +413,8 @@ public class ContentServer {
                         putReq(bufferedWriter, json);
                     }
                     response = bufferedReader.readLine();
-                    System.out.println("Servers: " + response);
+                    //System.out.println(response);
+
                 } else {
                     System.err.println("Error: Failed to establish a connection to the server, please check host location or try again later...");
                     System.exit(1);
@@ -447,18 +426,9 @@ public class ContentServer {
             } catch (InterruptedException e) {
                 System.out.println("Failed to wait");
             }
+            
+            Http.read(bufferedWriter, bufferedReader);
 
-            while (true) {
-
-                response = bufferedReader.readLine();
-                System.out.println(response);
-    
-                if (response != null && response.isBlank()) {
-                    Http.write(bufferedWriter, "BYE\r\n");
-                    System.out.println(bufferedReader.readLine());
-                    break;
-                }
-            }
         } catch (IOException e){
             System.out.println("Connection to aggregation server was not established or lost...");
             e.printStackTrace();
@@ -474,7 +444,7 @@ public class ContentServer {
                 e.printStackTrace();
             }
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-            executor.scheduleWithFixedDelay(sendHeartbeatPeriodically(serverAddress, port), 2, 15, TimeUnit.SECONDS);
+            executor.scheduleWithFixedDelay(sendHeartbeatPeriodically(serverAddress, port), 0, 15, TimeUnit.SECONDS);
         }
     }
 }
