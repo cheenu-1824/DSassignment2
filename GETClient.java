@@ -25,39 +25,6 @@ public class GETClient {
 
     }
 
-    public static void getReq(BufferedWriter bufferedWriter) {
-
-        String getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
-                    + "Host: " + "localhost" + "\r\n\r\n";
-        try {
-
-            Http.write(bufferedWriter, getMessage);
-
-        } catch (IOException e ){
-            System.out.println("Error: Failed to send GET request the the server...");
-        } 
-
-    }
-
-    public static void postReq(BufferedWriter bufferedWriter) {
-
-        String content = "Retrying connection\r\n";
-        int contentLength = content.length();
-
-        String postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
-
-        System.out.println(postMessage);
-
-        try {
-
-            Http.write(bufferedWriter, postMessage);
-
-        } catch (IOException e ){
-            System.out.println("Error: Failed to send POST request to the server...");
-        } 
-
-    }
-
     public static String buildMsg(BufferedReader bufferedReader) {
         StringBuilder content = new StringBuilder();
         try {
@@ -119,48 +86,6 @@ public class GETClient {
 
     } 
 
-    public static Socket retryConnection(String serverAddress, int port) {
-        int tries = 0;
-        String response = "";
-
-        while (tries < 4) {
-            tries += 1;
-            try {
-                Thread.sleep(2500);
-            } catch (InterruptedException e) {
-                System.err.println("Error: Failed to retry connection to the server...");
-            }
-
-            try {
-
-                Socket socket = new Socket(serverAddress, port);
-
-                InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-    
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-                
-                postReq(bufferedWriter);
-
-                while ((response = bufferedReader.readLine()) != null) {
-                    System.out.println(response);
-                    if (!response.equals("Server too busy. Please try again later...")) {
-                        response = bufferedReader.readLine();
-                        System.out.println(response);
-                        return socket;
-                    }
-                }
-                System.err.println("Error: Server is still busy, retrying...");
-                Tool.closeSocket(socket);
-            } catch (IOException e) {
-                System.err.println("Error: Failed to retry connection to the server...");
-            }
-
-        }
-        return null;
-    }
-
     public static void displayWeather(List<WeatherObject> weatherData) {
 
         System.out.println("\n\n<=====WEATHER FEED=====>\n");
@@ -219,7 +144,7 @@ public class GETClient {
 
                 Tool.closeSocket(socket);
 
-                socket = retryConnection(serverAddress, port);
+                socket = Http.retryConnection(serverAddress, port);
                 if (socket != null) {
                     setReaderWriter(socket);
                 } else {

@@ -107,7 +107,7 @@ public class AggregationServer {
             boolean isContent = false;
             while (true) {
                 String line = bufferedReader.readLine();
-                System.out.println("LINE: " + line);
+                //System.out.println(line);
                 if (line.isBlank()) {
                     if (reqType == "GET") {
                         break;
@@ -513,7 +513,6 @@ public class AggregationServer {
                     int i = 1;
                     synchronized (threads) {
                         for (i = 0; i < maxClients; i++) {
-                            System.out.println(threads[i]); // printing null for some reason wait its fine cause first should be null
                             if (threads[i] == null) {
                                 threads[i] = new ClientThread(socket);
                                 new Thread(threads[i]).start();

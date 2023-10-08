@@ -182,84 +182,6 @@ public class ContentServer {
         } catch (IOException e ){
             System.out.println("Error: Failed to send PUT request to the server...");
         } 
-
-    }
-
-    public static void postReq(BufferedWriter bufferedWriter, boolean retry) {
-        // Get content length
-        String content = "";
-        int contentLength = 0;
-
-        String postMessage = "";
-
-        if (retry == true) {
-            content = "Retrying connection";
-            contentLength = content.length();
-
-            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
-
-        } else {
-            content = "StationId: " + ContentServer.stationId + " is alive";
-            contentLength = content.length();
-
-            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
-
-        }
-
-        System.out.println(postMessage);
-
-        try {
-
-            Http.write(bufferedWriter, postMessage);
-
-        } catch (IOException e ){
-            System.out.println("Error: Failed to send POST request to the server...");
-        } 
-
-    }
-
-    public static Socket retryConnection(String serverAddress, int port) {
-        int tries = 0;
-        String response = "";
-
-        while (tries < 4) {
-            tries += 1;
-            try {
-                Thread.sleep(2500);
-            } catch (InterruptedException e) {
-                System.err.println("Error: Failed to retry connection to the server...");
-            }
-
-            try {
-
-                Socket socket = new Socket(serverAddress, port);
-
-                InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-    
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-                
-                postReq(bufferedWriter, true);
-
-                while ((response = bufferedReader.readLine()) != null && !response.isEmpty()) {
-                    System.out.println(response);
-                    if (!response.equals("Server too busy. Please try again later...")) {
-                        response = bufferedReader.readLine();
-                        System.out.println(response);
-                        return socket;
-                    }
-                }
-                System.err.println("Error: Server is still busy, retrying...");
-                Tool.closeSocket(socket);
- 
-
-            } catch (IOException e) {
-                System.err.println("Error: Failed to retry connection to the server...");
-            }
-
-        }
-        return null;
     }
 
     public static void sendHeartbeat(String serverAddress, int port) {
@@ -279,7 +201,7 @@ public class ContentServer {
             bufferedReader = new BufferedReader(inputStreamReader);
             bufferedWriter = new BufferedWriter(outputStreamWriter);
 
-            postReq(bufferedWriter, false);
+            Http.postRequest(bufferedWriter, Integer.toString(ContentServer.stationId), false);
             boolean sentReq = true;
             String response = "";
 
@@ -298,7 +220,7 @@ public class ContentServer {
 
                     Tool.closeSocket(socket);
 
-                    socket = retryConnection(serverAddress, port);
+                    socket = Http.retryConnection(serverAddress, port);
                     if (socket != null) {
 
                         inputStreamReader = new InputStreamReader(socket.getInputStream());
@@ -307,7 +229,7 @@ public class ContentServer {
                         bufferedWriter = new BufferedWriter(outputStreamWriter);
 
                         if (sentReq == false) {
-                            postReq(bufferedWriter, false);
+                            Http.postRequest(bufferedWriter,"", false);
                         }
 
                     } else {
@@ -395,7 +317,13 @@ public class ContentServer {
 
             setReaderWriter(socket);
 
-            putReq(bufferedWriter, json);
+            String body = "";
+
+            for (String entry : json) {
+                body += entry + "\n"; 
+            }
+
+            Http.putRequest(bufferedWriter, body);
             boolean sentReq = true;
             String response = "";
 
@@ -404,7 +332,7 @@ public class ContentServer {
 
             if (response.equals("Server too busy. Please try again later...")) {
                 sentReq = false;
-                socket = retryConnection(serverAddress, port);
+                socket = Http.retryConnection(serverAddress, port);
                 if (socket != null) {
 
                     setReaderWriter(socket);

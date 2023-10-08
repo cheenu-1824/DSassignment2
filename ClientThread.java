@@ -25,7 +25,7 @@ public class ClientThread implements Runnable{
             while (true) {
 
                 String msg = bufferedReader.readLine();
-                System.out.println("MSG:  " + msg);
+                //System.out.println("MSG:  " + msg);
 
                 if (msg.equalsIgnoreCase("BYE")) {
                     Http.write(bufferedWriter, "BYE!\r\n");

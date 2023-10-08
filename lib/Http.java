@@ -1,17 +1,112 @@
 package lib;
 
+import java.net.*;
 import java.io.*;
 
 public class Http {
+
+    public static Socket retryConnection(String serverAddress, int port) {
+        int tries = 0;
+        String response = "";
+
+        while (tries < 4) {
+            tries += 1;
+            try {
+                Thread.sleep(2500);
+            } catch (InterruptedException e) {
+                System.err.println("Error: Failed to retry connection to the server...");
+            }
+
+            try {
+
+                Socket socket = new Socket(serverAddress, port);
+
+                InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
     
-    public static void sendRequest(BufferedWriter bufferedWriter, String reqType, String body) {
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+                
+                Http.postRequest(bufferedWriter, "", true);
+
+                while ((response = bufferedReader.readLine()) != null) {
+                    System.out.println(response);
+                    if (!response.equals("Server too busy. Please try again later...")) {
+                        response = bufferedReader.readLine();
+                        System.out.println(response);
+                        return socket;
+                    }
+                }
+                System.err.println("Error: Server is still busy, retrying...");
+                Tool.closeSocket(socket);
+            } catch (IOException e) {
+                System.err.println("Error: Failed to retry connection to the server...");
+            }
+        }
+        return null;
+    }
+    
+    public static void sendRequest(BufferedWriter bufferedWriter, String reqType, String body, boolean retry) {
 
         switch (reqType) {
             case "GET":
                 getRequest(bufferedWriter);
-
+                break;
+            case "PUT":
+                putRequest(bufferedWriter, body);
+                break;
+            case "POST":
+                postRequest(bufferedWriter, body, retry);
+                break;
+            default:
+                System.out.println("Error: Failed to send request type: " + reqType);
         }
         
+    }
+
+    public static void postRequest(BufferedWriter bufferedWriter, String stationId, boolean retry) {
+        // Get content length
+        String content = "";
+        int contentLength = 0;
+
+        String postMessage = "";
+
+        if (retry == true) {
+            content = "Retrying connection";
+            contentLength = content.length();
+            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
+        } else {
+            content = "StationId: " + stationId + " is alive";
+            contentLength = content.length();
+            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
+        }
+
+        System.out.println(postMessage);
+
+        try {
+            Http.write(bufferedWriter, postMessage);
+        } catch (IOException e ){
+            System.out.println("Error: Failed to send POST request to the server...");
+        } 
+    }
+
+    public static void putRequest(BufferedWriter bufferedWriter, String body) {
+
+        int contentLength = body.length();
+
+        if (!body.isEmpty()) {
+            body = body.substring(0, body.length() - 1);
+        }
+
+        String putMessage = Http.HttpRequest("PUT", "/content/weather.json", true, "application/json", contentLength, body);
+
+        System.out.println(putMessage);
+
+        try {
+            Http.write(bufferedWriter, putMessage);
+        } catch (IOException e ){
+            System.out.println("Error: Failed to send PUT request to the server...");
+        } 
     }
 
     public static void getRequest(BufferedWriter bufferedWriter) {
