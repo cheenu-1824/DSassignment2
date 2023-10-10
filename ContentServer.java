@@ -22,6 +22,8 @@ public class ContentServer {
     private static OutputStreamWriter outputStreamWriter = null;
     private static BufferedReader bufferedReader = null;
     private static BufferedWriter bufferedWriter = null;
+    private LamportClock clock = new LamportClock(0);
+
 
     private static void setStationId() {
         Random random = new Random();

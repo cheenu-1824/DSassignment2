@@ -8,7 +8,6 @@ import java.util.Iterator;
 
 import lib.*;
 
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +27,7 @@ public class AggregationServer {
     private static Map<Integer, Boolean> stationHeartbeat = new HashMap<>();
     public static ClientThread[] threads = new ClientThread[5];
     private static final Logger logger = Logger.getLogger(AggregationServer.class.getName());
+    private static LamportClock clock = new LamportClock(1);
 
     private static Socket socket = null;
     private static ServerSocket serverSocket = null;
@@ -241,6 +241,8 @@ public class AggregationServer {
             //Testing
             printWeatherMap();
 
+
+
             Http.write(bufferedWriter, putResponse);
     
         } catch (IOException e) {
@@ -249,11 +251,18 @@ public class AggregationServer {
     
     }
 
-    public static void handleGetReq(BufferedWriter bufferedWriter, String msg) {
+    public static void handleGetReq(BufferedWriter bufferedWriter, String msg) throws IOException {
         
         logger.log(Level.INFO, "GET request has been received..." + msg + "\n");
 
         try {
+            
+            if (msg.contains("lamportClock")) {
+                String response = Http.HttpResponse(200, clock);
+                System.out.println(response);
+                Http.write(bufferedWriter, response);
+                return;
+            }
 
             List<WeatherObject> feed = getFeed();
 

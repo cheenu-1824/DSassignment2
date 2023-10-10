@@ -1,0 +1,17 @@
+id:IDS67890
+name:Melbourne
+state:VIC
+time_zone:AEDT
+lat:-37.8136
+lon:144.9631
+local_date_time:30/08:15pm
+local_date_time_full:20230730171500
+air_temp:16.7
+apparent_t:15.2
+cloud:Mostly clear
+dewpt:9.1
+press:1009.2
+rel_hum:55
+wind_dir:NW
+wind_spd_kmh:17
+wind_spd_kt:8

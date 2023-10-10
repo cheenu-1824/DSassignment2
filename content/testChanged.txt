@@ -1,0 +1,17 @@
+id: IDS60901
+name: Adelaide (West Terrace / ngayirdapira)
+state: SA
+time_zone: CST
+lat: -34.9
+lon: 138.6
+local_date_time: 10/09:30am
+local_date_time_full: 20231009103000
+air_temp: 16.8
+apparent_t: 15.2
+cloud: Mostly sunny
+dewpt: 8.7
+press: 1012.4
+rel_hum: 55
+wind_dir: ESE
+wind_spd_kmh: 15
+wind_spd_kt: 8

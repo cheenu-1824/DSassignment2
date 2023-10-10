@@ -32,3 +32,20 @@ rel_hum:55
 wind_dir:W
 wind_spd_kmh:10
 wind_spd_kt:5
+id:IDS67890
+name:Melbourne
+state:VIC
+time_zone:AEDT
+lat:-37.8136
+lon:144.9631
+local_date_time:15/05:15pm
+local_date_time_full:20230715171500
+air_temp:18.7
+apparent_t:17.2
+cloud:Mostly clear
+dewpt:9.6
+press:1019.2
+rel_hum:52
+wind_dir:NW
+wind_spd_kmh:12
+wind_spd_kt:6

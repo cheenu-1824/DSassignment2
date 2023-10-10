@@ -3,14 +3,27 @@ import java.io.*;
 
 import lib.*;
 
+/**
+ * The ClientThread class represents a thread that handles a request from a single client.
+ * It listens for messages from the client, handles them, and responds.
+ */
 public class ClientThread implements Runnable{
 
     private Socket socket = null;
 
+    /**
+     * Constructs a ClientThread instance.
+     *
+     * @param socket The client socket associated with the thread instance.
+     */
     public ClientThread(Socket socket) {
         this.socket = socket;
     }
 
+    /**
+     * Runs the thread's handling process for handling client communication.
+     * It listens for incoming messages, processes them, and responds.
+     */
     public void run() {
 
         int maxClients = 1;
@@ -25,14 +38,13 @@ public class ClientThread implements Runnable{
             while (true) {
 
                 String msg = bufferedReader.readLine();
-                //System.out.println("MSG:  " + msg);
 
                 if (msg.equalsIgnoreCase("BYE")) {
                     Http.write(bufferedWriter, "BYE!\r\n");
                     break;
                 }
 
-                if (true) { // for some reason its not receive by msg
+                if (true) { 
                     AggregationServer.handleReq(bufferedReader, bufferedWriter, msg);
                 }
 
@@ -57,5 +69,4 @@ public class ClientThread implements Runnable{
             System.out.println("Error: Failed to start threaded client socket...");
         } 
     }
-
 }

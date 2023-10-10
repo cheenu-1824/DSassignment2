@@ -1,0 +1,17 @@
+id: IDS98765
+name: Sydney
+state: NSW
+time_zone: AEDT
+lat: -33.8688
+lon: 151.2093
+local_date_time: 20/05:30pm
+local_date_time_full: 20230720173000
+air_temp: 22.9
+apparent_t: 23.7
+cloud: Mostly clear
+dewpt: 10.1
+press: 1050.5
+rel_hum: 47
+wind_dir: NE
+wind_spd_kmh: 12
+wind_spd_kt: 7

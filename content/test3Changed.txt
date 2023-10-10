@@ -1,0 +1,17 @@
+id: IDS67890
+name: Melbourne
+state: VIC
+time_zone: AEDT
+lat: -37.8136
+lon: 144.9631
+local_date_time: 10/10:30am
+local_date_time_full: 20231010103000
+air_temp: 20.3
+apparent_t: 18.8
+cloud: Partly cloudy
+dewpt: 12.4
+press: 1012.8
+rel_hum: 49
+wind_dir: N
+wind_spd_kmh: 22
+wind_spd_kt: 12

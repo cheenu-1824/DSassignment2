@@ -18,6 +18,8 @@ public class GETClient {
     private static OutputStreamWriter outputStreamWriter = null;
     private static BufferedReader bufferedReader = null;
     private static BufferedWriter bufferedWriter = null;
+    private static LamportClock clock = new LamportClock(0);
+
 
     /**
      * Sets up the reader and writer for the socket.
@@ -64,27 +66,6 @@ public class GETClient {
     }
 
     /**
-     * Splits a JSON message into individual JSON objects and stores them in a list.
-     *
-     * @param msg The JSON message to split.
-     * @return A list of individual JSON objects as strings.
-     */
-    public static List<String> splitJson(String msg) {
-
-        String[] weatherData = msg.split("\\n");
-        List<String> json = new ArrayList<>();
-    
-        for (String weather : weatherData) {
-            weather = weather.trim();
-            if (!weather.isEmpty()) {
-                json.add(weather);
-            }
-        }
-        return json;
-
-    } 
-
-    /**
      * Handles a response from the aggregation server, retrieves weather data,
      * and returns it as a list of WeatherObject instances.
      *
@@ -101,7 +82,7 @@ public class GETClient {
             return null;
         }
 
-        List<String> json = splitJson(body);
+        List<String> json = Tool.splitJson(body);
         List<WeatherObject> weatherData = new ArrayList<>();
         
         for (String entry : json) {
@@ -144,6 +125,14 @@ public class GETClient {
         }
     }
     
+    public static void handleLamportClock(BufferedReader bufferedReader) {
+        
+        String msg = buildMsg(bufferedReader);
+        String body = Http.getBody(msg);
+        System.out.println(msg);
+        System.out.println(body);
+    }
+
     /**
      * The main method for the GETClient program used to connect to the aggregation server,
      * sends requests, retrieves weather data, and displays it.
@@ -164,7 +153,7 @@ public class GETClient {
         try {
             socket = new Socket(serverAddress, port);
             setReaderWriter(socket);
-            Http.getRequest(bufferedWriter);
+            Http.getRequest(bufferedWriter, clock);
             boolean sentReq = true;
             String response = bufferedReader.readLine();
             System.out.println(response);
@@ -180,10 +169,13 @@ public class GETClient {
                 }
             }
             if (sentReq == false && socket != null) {
-                Http.getRequest(bufferedWriter);
+                Http.getRequest(bufferedWriter, clock);
                 response = bufferedReader.readLine();
                 System.out.println(response);
             }
+
+            handleLamportClock(bufferedReader);
+
             List<WeatherObject> weatherData = handleRes(bufferedReader);
 
             if (weatherData == null) {

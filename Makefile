@@ -4,7 +4,7 @@
 JAVAC = javac
 
 # Classpath variable for libraries
-LIB = -cp "lib/gson-2.10.1.jar"
+LIB = -cp "lib/*:./"
 
 # Variable for the .java files
 SOURCES = $(wildcard *.java)

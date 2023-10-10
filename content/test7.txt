@@ -1,3 +1,20 @@
+id: IDS98765
+name: Sydney
+state: NSW
+time_zone: AEDT
+lat: -33.8688
+lon: 151.2093
+local_date_time: 15/05:30pm
+local_date_time_full: 20230715173000
+air_temp: 22.5
+apparent_t: 23.8
+cloud: Partly cloudy
+dewpt: 12.1
+press: 1020.5
+rel_hum: 47
+wind_dir: NE
+wind_spd_kmh: 18
+wind_spd_kt: 10
 id:IDS60901
 name:Adelaide (West Terrace /  ngayirdapira)
 state: SA
@@ -15,6 +32,23 @@ rel_hum:60
 wind_dir:S
 wind_spd_kmh:15
 wind_spd_kt:8
+id:IDS67890
+name:Melbourne
+state:VIC
+time_zone:AEDT
+lat:-37.8136
+lon:144.9631
+local_date_time:15/05:15pm
+local_date_time_full:20230715171500
+air_temp:18.7
+apparent_t:17.2
+cloud:Mostly clear
+dewpt:9.6
+press:1019.2
+rel_hum:52
+wind_dir:NW
+wind_spd_kmh:12
+wind_spd_kt:6
 id:IDS12345
 name:New York City
 state:NY

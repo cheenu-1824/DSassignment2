@@ -91,10 +91,20 @@ public class Http {
         } 
     }
 
-    public static void getRequest(BufferedWriter bufferedWriter) {
+    public static void getRequest(BufferedWriter bufferedWriter, LamportClock clock) {
 
-        String getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
-                    + "Host: " + "localhost" + "\r\n\r\n";
+        String getMessage = "";
+        int clockValue = clock.getClock();
+        if (clockValue != 0) {
+            getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
+            + "Host: " + "localhost" 
+            + "Lamport-Clock: " + clockValue + "\r\n\r\n";
+        } else {
+            getMessage = "GET /lamportClock HTTP/1.1\r\n" //find correct dir
+            + "Host: " + "localhost" 
+            + "Lamport-Clock: " + clockValue + "\r\n\r\n";
+        }
+
         try {
 
             Http.write(bufferedWriter, getMessage);
@@ -141,6 +151,14 @@ public class Http {
 
         String httpMsg = "HTTP/1.1 " + status + " " + getStatusMsg(status) + "\r\n";
         httpMsg += "Content-Length: " + contentLength + "\r\n\r\n";
+
+        return httpMsg;
+    }
+
+    public static String HttpResponse(int status, LamportClock clock) {
+
+        String httpMsg = "HTTP/1.1 " + status + " " + getStatusMsg(status) + "\r\n";
+        httpMsg += "Lamport-Clock: " + clock.getClock() + "\r\n\r\n";
 
         return httpMsg;
     }
