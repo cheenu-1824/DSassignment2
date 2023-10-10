@@ -123,21 +123,7 @@ public class AggregationServer {
             logger.log(Level.SEVERE, "Failed to build request into a string..." + e.getMessage() + "\n", e);
         }
         return content.toString().trim();
-    }
-    
-    public static List<String> splitJson(String msg) {
-        String[] weatherData = msg.split("\\n");
-        List<String> json = new ArrayList<>();
-    
-        for (String weather : weatherData) {
-            weather = weather.trim();
-            if (!weather.isEmpty()) {
-                json.add(weather);
-            }
-        }
-    
-        return json;
-    }    
+    }  
 
     public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {
         
@@ -227,14 +213,12 @@ public class AggregationServer {
             // Increament all updateValue
             updateWeatherValue();
 
-            Gson gson = new Gson();
-
-            List<String> json = splitJson(Http.getBody(msg));
+            List<String> json = Tool.splitJson(Http.getBody(msg));
             List<WeatherObject> weatherData = new ArrayList<>();
             
             for (String entry : json) {
                 try {
-                    WeatherObject weather = gson.fromJson(entry, WeatherObject.class);
+                    WeatherObject weather = Tool.deserializeJson(entry);
                     weatherData.add(weather);
                     addWeatherData(weather);
                 } catch (JsonSyntaxException e) {    
@@ -273,25 +257,12 @@ public class AggregationServer {
 
             List<WeatherObject> feed = getFeed();
 
-            Gson gson = new Gson();
+            String body = Tool.serializeJson(feed);
 
-            List<String> json = new ArrayList<>();
-            for (WeatherObject weather : feed) {
-                json.add(gson.toJson(weather));
-                //System.out.println(gson.toJson(weather));
-            }
-
-            int contentLength = 0;
-            for (String entry : json) {
-                contentLength += entry.length();
-            }
+            int contentLength = body.length();
 
             String response = Http.HttpResponse(200, contentLength);
-
-            for (String entry : json) {
-                response += entry + "\r\n"; 
-            }
-            response += "\r\n";
+            response += body + "\r\n\r\n";
     
             System.out.println(response);
 

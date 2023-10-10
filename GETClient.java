@@ -1,6 +1,5 @@
 import java.net.*;
 import java.io.*;
-import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -8,6 +7,10 @@ import com.google.gson.Gson;
 
 import lib.*;
 
+/**
+ * The GETClient class represents a client making HTTP GET requests
+ * to retrieve updated weather data from an aggregation server.
+ */
 public class GETClient {
 
     private static Socket socket = null;
@@ -16,6 +19,12 @@ public class GETClient {
     private static BufferedReader bufferedReader = null;
     private static BufferedWriter bufferedWriter = null;
 
+    /**
+     * Sets up the reader and writer for the socket.
+     *
+     * @param socket The socket connection to the server.
+     * @throws IOException If an I/O error occurs while setting up the reader and writer.
+     */
     public static void setReaderWriter(Socket socket) throws IOException {
         
         inputStreamReader = new InputStreamReader(socket.getInputStream());
@@ -25,13 +34,19 @@ public class GETClient {
 
     }
 
+    /**
+     * Builds a full message from the lines read from the buffered reader.
+     *
+     * @param bufferedReader The buffered reader to read the message from.
+     * @return The complete message as a string.
+     */
     public static String buildMsg(BufferedReader bufferedReader) {
+
         StringBuilder content = new StringBuilder();
         try {
             boolean isContent = false;
             while (true) {
                 String line = bufferedReader.readLine();
-
                 if (line.isEmpty()) {
                     if (isContent == true){
                         break;
@@ -45,9 +60,17 @@ public class GETClient {
             System.out.println("Error: Failed to recieve request from aggregation server...");
         }
         return content.toString().trim();
+
     }
 
+    /**
+     * Splits a JSON message into individual JSON objects and stores them in a list.
+     *
+     * @param msg The JSON message to split.
+     * @return A list of individual JSON objects as strings.
+     */
     public static List<String> splitJson(String msg) {
+
         String[] weatherData = msg.split("\\n");
         List<String> json = new ArrayList<>();
     
@@ -57,35 +80,42 @@ public class GETClient {
                 json.add(weather);
             }
         }
-    
         return json;
+
     } 
 
-    public static List<WeatherObject> handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+    /**
+     * Handles a response from the aggregation server, retrieves weather data,
+     * and returns it as a list of WeatherObject instances.
+     *
+     * @param bufferedReader The buffered reader for reading the server's response.
+     * @return A list of WeatherObject instances containing weather data.
+     */
+    public static List<WeatherObject> handleRes(BufferedReader bufferedReader) {
         
         String msg = buildMsg(bufferedReader);
         String body = Http.getBody(msg);
-
         System.out.println(msg);
         
-
         if (body == null) {
             return null;
         }
 
-        Gson gson = new Gson();
-
-        List<String> json = splitJson(Http.getBody(msg));
+        List<String> json = splitJson(body);
         List<WeatherObject> weatherData = new ArrayList<>();
         
         for (String entry : json) {
-            weatherData.add(gson.fromJson(entry, WeatherObject.class));
+            weatherData.add(Tool.deserializeJson(entry));
         }
-
        return weatherData;
 
     } 
 
+    /**
+     * Displays weather data nicely formatted in the console.
+     *
+     * @param weatherData A list of WeatherObject instances containing weather data.
+     */
     public static void displayWeather(List<WeatherObject> weatherData) {
 
         System.out.println("\n\n<=====WEATHER FEED=====>\n");
@@ -113,37 +143,35 @@ public class GETClient {
             System.out.println();
         }
     }
+    
+    /**
+     * The main method for the GETClient program used to connect to the aggregation server,
+     * sends requests, retrieves weather data, and displays it.
+     *
+     * @param args Command-line arguments (URL in the format http://<domain>:<port>).
+     */
     public static void main(String[] args) {
-
         String serverAddress = "localhost";
         int port = 4567;
-
         if (args.length != 1){
-            System.out.println("Incorrect parameters, input should be as follows: java GETClient <domain:port>");
+            System.out.println("Incorrect parameters, input should be as follows: java GETClient http://<domain:port>");
             System.exit(1);
         }
-
-        // Parse URL in server address and port
         String[] splitURL = Tool.parseURL(args[0]);
         serverAddress = splitURL[0];
+        port = Integer.parseInt(splitURL[1]);
 
         try {
-
             socket = new Socket(serverAddress, port);
-
             setReaderWriter(socket);
-
             Http.getRequest(bufferedWriter);
             boolean sentReq = true;
-
             String response = bufferedReader.readLine();
             System.out.println(response);
 
             if (!response.equals("HTTP/1.1 200 OK")) {
                 sentReq = false;
-
                 Tool.closeSocket(socket);
-
                 socket = Http.retryConnection(serverAddress, port);
                 if (socket != null) {
                     setReaderWriter(socket);
@@ -151,35 +179,26 @@ public class GETClient {
                     System.err.println("Error: Failed to establish a connection to the server, please reconnect to restore weather data to the server");
                 }
             }
-
             if (sentReq == false && socket != null) {
                 Http.getRequest(bufferedWriter);
-
                 response = bufferedReader.readLine();
                 System.out.println(response);
             }
-
-            List<WeatherObject> weatherData = handleReq(bufferedReader, bufferedWriter);
+            List<WeatherObject> weatherData = handleRes(bufferedReader);
 
             if (weatherData == null) {
-
                 String msg = "BYE\r\n";
-
                 Http.write(bufferedWriter, msg);
-
-    
                 Tool.closeSocket(socket);
                 Tool.closeInputStreamReader(inputStreamReader);
                 Tool.closeOutputStreamWriter(outputStreamWriter);
                 Tool.closeBufferedReader(bufferedReader);
                 Tool.closeBufferedWriter(bufferedWriter);
-
                 System.exit(1);
             }
-
             displayWeather(weatherData);
 
-            // Function for testing 
+            // Simulate network delay
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -189,27 +208,20 @@ public class GETClient {
             String msg = "BYE\r\n";
             Http.write(bufferedWriter, msg);
             String finalResponse = bufferedReader.readLine();
-
             if (finalResponse.equals("BYE!")){
                 System.out.println("Request was handled sucessfully...");
             } else {
                 System.out.println("Failed to handle request sucessfully...");
             }
-
         } catch (IOException e){
             System.out.println("Connection to aggregation server was lost...");
-            e.printStackTrace();
-
         } finally {
-            
             try {
-
                 Tool.closeSocket(socket);
                 Tool.closeInputStreamReader(inputStreamReader);
                 Tool.closeOutputStreamWriter(outputStreamWriter);
                 Tool.closeBufferedReader(bufferedReader);
                 Tool.closeBufferedWriter(bufferedWriter);
-
             } catch (IOException e){
                 System.out.println("Error occured when closing objects...");
                 e.printStackTrace();
@@ -217,4 +229,3 @@ public class GETClient {
         }
     }
 }
-

@@ -45,24 +45,6 @@ public class Http {
         }
         return null;
     }
-    
-    public static void sendRequest(BufferedWriter bufferedWriter, String reqType, String body, boolean retry) {
-
-        switch (reqType) {
-            case "GET":
-                getRequest(bufferedWriter);
-                break;
-            case "PUT":
-                putRequest(bufferedWriter, body);
-                break;
-            case "POST":
-                postRequest(bufferedWriter, body, retry);
-                break;
-            default:
-                System.out.println("Error: Failed to send request type: " + reqType);
-        }
-        
-    }
 
     public static void postRequest(BufferedWriter bufferedWriter, String stationId, boolean retry) {
         // Get content length
@@ -195,6 +177,11 @@ public class Http {
         }
 
         int contentIndex = msg.indexOf("\n\n");
+
+        if (contentIndex == -1) {
+            contentIndex = msg.indexOf("\r\n\r\n");
+        }
+
         if (contentIndex != -1) {
             String requestBody = msg.substring(contentIndex);
             return requestBody;
