@@ -1,59 +1,78 @@
-Oct. 10, 2023 8:38:44 PM AggregationServer main
+Oct. 11, 2023 6:49:20 PM AggregationServer main
 INFO: Starting aggregation server on port: 4567
 
-Oct. 10, 2023 8:38:44 PM AggregationServer$2 run
-INFO: Checking if heartbeat has been recieved for all weather stations...
-
-Oct. 10, 2023 8:38:44 PM AggregationServer$1 run
+Oct. 11, 2023 6:49:20 PM AggregationServer$1 run
 INFO: Weather data has been saved...
 
-Oct. 10, 2023 8:38:51 PM AggregationServer handlePutReq
+Oct. 11, 2023 6:49:20 PM AggregationServer$2 run
+INFO: Checking if heartbeat has been recieved for all weather stations...
+
+Oct. 11, 2023 6:49:27 PM AggregationServer handleGetReq
+INFO: GET request has been received...GET /lamportClock HTTP/1.1
+Host: localhost
+Lamport-Clock: 0
+
+Oct. 11, 2023 6:49:27 PM AggregationServer handlePutReq
 INFO: PUT request has been received...
 PUT /content/weather.json HTTP/1.1
 User-Agent: ATOMClient/1/0
+Lamport-Clock: 2
 Content-Type: application/json
 Content-Length: 367
 
-{"id":"IDS60901","name":"Adelaide (West Terrace /  ngayirdapira)","state":"SA","time_zone":"CST","lat":-34.9,"lon":138.6,"local_date_time":"12/02:00pm","local_date_time_full":"20230712160000","air_temp":10.3,"apparent_t":8.5,"cloud":"Cloudy","dewpt":5.2,"press":1003.9,"rel_hum":45,"wind_dir":"S","wind_spd_kmh":20,"wind_spd_kt":9,"updateValue":0,"stationId":412219}
+{"id":"IDS60901","name":"Adelaide (West Terrace /  ngayirdapira)","state":"SA","time_zone":"CST","lat":-34.9,"lon":138.6,"local_date_time":"12/02:00pm","local_date_time_full":"20230712160000","air_temp":10.3,"apparent_t":8.5,"cloud":"Cloudy","dewpt":5.2,"press":1003.9,"rel_hum":45,"wind_dir":"S","wind_spd_kmh":20,"wind_spd_kt":9,"updateValue":0,"stationId":185339}
 
-Oct. 10, 2023 8:38:51 PM AggregationServer handlePostReq
+Oct. 11, 2023 6:49:27 PM AggregationServer handlePostReq
 INFO: POST request has been received...
 POST / HTTP/1.1
 Content-Type: text/plain
 Content-Length: 26
 
-StationId: 412219 is alive
+StationId: 185339 is alive
 
-Oct. 10, 2023 8:38:54 PM AggregationServer$1 run
+Oct. 11, 2023 6:49:30 PM AggregationServer$1 run
 INFO: Weather data has been saved...
 
-Oct. 10, 2023 8:39:04 PM AggregationServer$1 run
+Oct. 11, 2023 6:49:40 PM AggregationServer$1 run
 INFO: Weather data has been saved...
 
-Oct. 10, 2023 8:39:06 PM AggregationServer handlePostReq
+Oct. 11, 2023 6:49:42 PM AggregationServer handlePostReq
 INFO: POST request has been received...
 POST / HTTP/1.1
 Content-Type: text/plain
 Content-Length: 26
 
-StationId: 412219 is alive
+StationId: 185339 is alive
 
-Oct. 10, 2023 8:39:09 PM AggregationServer handleGetReq
-INFO: GET request has been received...GET /filesystem/weather.json HTTP/1.1
+Oct. 11, 2023 6:49:45 PM AggregationServer handleGetReq
+INFO: GET request has been received...GET /lamportClock HTTP/1.1
 Host: localhost
+Lamport-Clock: 0
 
-Oct. 10, 2023 8:39:14 PM AggregationServer$1 run
+Oct. 11, 2023 6:49:45 PM AggregationServer handlePutReq
+INFO: PUT request has been received...
+PUT /content/weather.json HTTP/1.1
+User-Agent: ATOMClient/1/0
+Lamport-Clock: 5
+Content-Type: application/json
+Content-Length: 367
+
+{"id":"IDS60901","name":"Adelaide (West Terrace /  ngayirdapira)","state":"SA","time_zone":"CST","lat":-34.9,"lon":138.6,"local_date_time":"12/02:00pm","local_date_time_full":"20230712160000","air_temp":10.3,"apparent_t":8.5,"cloud":"Cloudy","dewpt":5.2,"press":1003.9,"rel_hum":45,"wind_dir":"S","wind_spd_kmh":20,"wind_spd_kt":9,"updateValue":0,"stationId":108308}
+
+Oct. 11, 2023 6:49:45 PM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 108308 is alive
+
+Oct. 11, 2023 6:49:50 PM AggregationServer$1 run
 INFO: Weather data has been saved...
 
-Oct. 10, 2023 8:39:14 PM AggregationServer checkHeartbeat
-INFO: Weather from stationId: 659722 has been removed...
+Oct. 11, 2023 6:49:50 PM AggregationServer checkHeartbeat
+INFO: Weather from stationId: 598161 has been removed...
 
-Oct. 10, 2023 8:39:14 PM AggregationServer checkHeartbeat
-INFO: Weather from stationId: 179460 has been removed...
-
-Oct. 10, 2023 8:39:14 PM AggregationServer checkHeartbeat
-INFO: Weather from stationId: 5802 has been removed...
-
-Oct. 10, 2023 8:39:14 PM AggregationServer$2 run
+Oct. 11, 2023 6:49:50 PM AggregationServer$2 run
 INFO: Checking if heartbeat has been recieved for all weather stations...
 

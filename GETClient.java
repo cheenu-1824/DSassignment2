@@ -127,10 +127,18 @@ public class GETClient {
     
     public static void handleLamportClock(BufferedReader bufferedReader) {
         
-        String msg = buildMsg(bufferedReader);
-        String body = Http.getBody(msg);
-        System.out.println(msg);
-        System.out.println(body);
+        try {
+            String lamportClockHeader = bufferedReader.readLine();
+            System.out.println(lamportClockHeader);
+            System.out.println(bufferedReader.readLine());
+            int serverClock = Http.extractLamportClock(lamportClockHeader);
+            clock.updateClock(serverClock);
+
+            Http.getRequest(bufferedWriter, clock);
+        } catch (IOException e) {
+            System.out.println("Error: Failed to retrieve server lamport clock");
+        }
+
     }
 
     /**
@@ -177,6 +185,7 @@ public class GETClient {
             handleLamportClock(bufferedReader);
 
             List<WeatherObject> weatherData = handleRes(bufferedReader);
+            bufferedReader.readLine();
 
             if (weatherData == null) {
                 String msg = "BYE\r\n";

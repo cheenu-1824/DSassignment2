@@ -2,8 +2,23 @@ package lib;
 
 import java.net.*;
 import java.io.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Http {
+
+    public static int extractLamportClock(String input) {
+
+        Pattern pattern = Pattern.compile("Lamport-Clock: (\\d+)");
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.find()) {
+            String clockValue = matcher.group(1);
+            return Integer.parseInt(clockValue);
+        } else {
+            return -1; 
+        }
+    }
 
     public static Socket retryConnection(String serverAddress, int port) {
         int tries = 0;
@@ -56,11 +71,11 @@ public class Http {
         if (retry == true) {
             content = "Retrying connection";
             contentLength = content.length();
-            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
+            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content, null);
         } else {
             content = "StationId: " + stationId + " is alive";
             contentLength = content.length();
-            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content);
+            postMessage = Http.HttpRequest("POST", null, false, "text/plain", contentLength, content, null);
         }
 
         System.out.println(postMessage);
@@ -72,15 +87,16 @@ public class Http {
         } 
     }
 
-    public static void putRequest(BufferedWriter bufferedWriter, String body) {
+    public static void putRequest(BufferedWriter bufferedWriter, LamportClock clock, String body) {
 
+        //clock.incrementClock();
         int contentLength = body.length();
 
         if (!body.isEmpty()) {
             body = body.substring(0, body.length() - 1);
         }
 
-        String putMessage = Http.HttpRequest("PUT", "/content/weather.json", true, "application/json", contentLength, body);
+        String putMessage = Http.HttpRequest("PUT", "/content/weather.json", true, "application/json", contentLength, body, clock);
 
         System.out.println(putMessage);
 
@@ -94,14 +110,15 @@ public class Http {
     public static void getRequest(BufferedWriter bufferedWriter, LamportClock clock) {
 
         String getMessage = "";
+        //clock.incrementClock();
         int clockValue = clock.getClock();
         if (clockValue != 0) {
             getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
-            + "Host: " + "localhost" 
+            + "Host: " + "localhost\r\n" 
             + "Lamport-Clock: " + clockValue + "\r\n\r\n";
         } else {
             getMessage = "GET /lamportClock HTTP/1.1\r\n" //find correct dir
-            + "Host: " + "localhost" 
+            + "Host: " + "localhost\r\n" 
             + "Lamport-Clock: " + clockValue + "\r\n\r\n";
         }
 
@@ -115,7 +132,7 @@ public class Http {
 
     }
 
-    public static String HttpRequest(String reqType, String resource, Boolean userAgent, String contentType, int contentLength, String msg) {
+    public static String HttpRequest(String reqType, String resource, Boolean userAgent, String contentType, int contentLength, String msg, LamportClock clock) {
         
         String httpMsg = reqType + " ";
 
@@ -127,6 +144,10 @@ public class Http {
 
         if (userAgent == true) {
             httpMsg += "User-Agent: ATOMClient/1/0\r\n";
+        }
+
+        if (clock != null) {
+            httpMsg += "Lamport-Clock: " + clock.getClock() + "\r\n";
         }
 
         if (contentType != null) {

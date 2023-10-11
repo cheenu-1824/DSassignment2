@@ -27,7 +27,7 @@ public class AggregationServer {
     private static Map<Integer, Boolean> stationHeartbeat = new HashMap<>();
     public static ClientThread[] threads = new ClientThread[5];
     private static final Logger logger = Logger.getLogger(AggregationServer.class.getName());
-    private static LamportClock clock = new LamportClock(1);
+    private static LamportClock clock = new LamportClock(0);
 
     private static Socket socket = null;
     private static ServerSocket serverSocket = null;
@@ -125,41 +125,58 @@ public class AggregationServer {
         return content.toString().trim();
     }  
 
-    public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {
+    public static void handleClockOrder(String msg) throws InterruptedException {
         
+        int clientClock = Http.extractLamportClock(msg);
+        int serverClock = clock.getClock();
+        while (true) {
+            if (clientClock <= serverClock) { // previous req
+                break;
+            } else if (clientClock == serverClock + 1) { // next in sequence also slight delay for odd chance prev req has not reached
+                Thread.sleep(100); 
+                break;
+            } else {
+                Thread.sleep(500); // giving it time for any previous request to come through
+            }
+        }
+    }
+public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {        
         
         try {
             if (msg.length() < 3) {
-                System.out.println("yaaa"+msg);
-                logger.log(Level.SEVERE, "Request receieved was invalid...\n");
-
+                logger.log(Level.SEVERE, "Request receieved was invalid... Request: " + msg + "\n");
                 Http.write(bufferedWriter, Http.HttpResponse(400));
                 Tool.closeBufferedReader(bufferedReader);
                 Tool.closeBufferedWriter(bufferedWriter);
 
             } else {
-                switch (msg.substring(0, 3)) {
-                    case "PUT":
-                        msg = buildMsg(bufferedReader, msg, "PUT");
-                        // maybe do lamport stuff here, find the time start and then execute the 
-                        handlePutReq(bufferedWriter, msg);
-                        break;
-                    case "GET":
-                        msg = buildMsg(bufferedReader, msg, "GET");
-                        handleGetReq(bufferedWriter, msg);
-                        break;
-                    case "POS":
-                        msg = buildMsg(bufferedReader, msg, "POST");
-                        handlePostReq(bufferedWriter, msg);
-                        break;
-                    default:
-                        System.out.println("Client: " + msg);
-
-                        logger.log(Level.SEVERE, "Request receieved was invalid...\n");
-
-                        String response = Http.HttpResponse(400);
-                        Http.write(bufferedWriter, response);
-                        break;
+                try {
+                    switch (msg.substring(0, 3)) {
+                        case "PUT":
+                            msg = buildMsg(bufferedReader, msg, "PUT");
+                            handleClockOrder(msg);
+                            handlePutReq(bufferedWriter, msg);
+                            break;
+                        case "GET":
+                            msg = buildMsg(bufferedReader, msg, "GET");
+                            handleClockOrder(msg);
+                            handleGetReq(bufferedWriter, msg);
+                            break;
+                        case "POS":
+                            msg = buildMsg(bufferedReader, msg, "POST");
+                            handlePostReq(bufferedWriter, msg);
+                            break;
+                        default:
+                            System.out.println("Client: " + msg);
+    
+                            logger.log(Level.SEVERE, "Request receieved was invalid...\n");
+    
+                            String response = Http.HttpResponse(400);
+                            Http.write(bufferedWriter, response);
+                            break;
+                    }
+                } catch (InterruptedException e) {
+                    System.out.println("Error: Failed to wait for previous request");
                 }
             }
         } catch (IOException e) {
@@ -196,6 +213,8 @@ public class AggregationServer {
     public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
         logger.log(Level.INFO, "PUT request has been received...\n" + msg + "\n");
+        int sentClock = Http.extractLamportClock(msg);
+        clock.updateClock(sentClock);
 
         try {
             
@@ -254,6 +273,8 @@ public class AggregationServer {
     public static void handleGetReq(BufferedWriter bufferedWriter, String msg) throws IOException {
         
         logger.log(Level.INFO, "GET request has been received..." + msg + "\n");
+        int sentClock = Http.extractLamportClock(msg);
+        clock.updateClock(sentClock);
 
         try {
             
@@ -276,7 +297,6 @@ public class AggregationServer {
             System.out.println(response);
 
             Http.write(bufferedWriter, response);
-
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to process GET request..." + e.getMessage(), e);        
 

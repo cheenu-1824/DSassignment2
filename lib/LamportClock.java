@@ -1,6 +1,6 @@
 package lib;
 
-class LamportClock {
+public class LamportClock {
     private int clock = 0;
 
     public LamportClock(int clockValue) {

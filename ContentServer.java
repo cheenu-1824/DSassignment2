@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 import lib.*;
 
-
 public class ContentServer {
 
     private static int stationId = -1;
@@ -22,7 +21,7 @@ public class ContentServer {
     private static OutputStreamWriter outputStreamWriter = null;
     private static BufferedReader bufferedReader = null;
     private static BufferedWriter bufferedWriter = null;
-    private LamportClock clock = new LamportClock(0);
+    private static LamportClock clock = new LamportClock(0);
 
 
     private static void setStationId() {
@@ -228,6 +227,29 @@ public class ContentServer {
         };
     }
 
+    public static String handleLamportClock(BufferedReader bufferedReader, String body) {
+        
+        String response = "";
+
+        try {
+            String lamportClockHeader = bufferedReader.readLine();
+            System.out.println(lamportClockHeader);
+            System.out.println(bufferedReader.readLine());
+            int serverClock = Http.extractLamportClock(lamportClockHeader);
+            clock.updateClock(serverClock);
+            System.out.println(clock);
+
+            Http.putRequest(bufferedWriter, clock, body);
+            response = bufferedReader.readLine();
+
+        } catch (IOException e) {
+            System.out.println("Error: Failed to retrieve server lamport clock");
+        }
+
+        return response;
+
+    }
+
     public static void main(String[] args) {
         
         String serverAddress = "localhost";
@@ -271,27 +293,31 @@ public class ContentServer {
 
             setReaderWriter(socket);
 
-            Http.putRequest(bufferedWriter, body);
+            Http.getRequest(bufferedWriter, clock);
             Tool.networkDelay(100);
             boolean sentReq = true;
             String response = "";
 
             response = bufferedReader.readLine();
+            System.out.println(response);
             if (response.equals("Server too busy. Please try again later...")) {
                 sentReq = false;
                 socket = Http.retryConnection(serverAddress, port);
                 if (socket != null) {
                     setReaderWriter(socket);
-
-                    if (sentReq == false) {
-                        Http.putRequest(bufferedWriter, body);
-                    }
-                    response = bufferedReader.readLine();
                 } else {
                     System.err.println("Error: Failed to establish a connection to the server, please check host location or try again later...");
                     System.exit(1);
                 }
             }
+
+            if (sentReq == false && socket != null) {
+                Http.getRequest(bufferedWriter, clock);
+            }
+
+            response = handleLamportClock(bufferedReader, body);
+
+
             Http.read(bufferedWriter, bufferedReader);
         } catch (IOException e){
             System.out.println("Connection to aggregation server was not established or lost...");

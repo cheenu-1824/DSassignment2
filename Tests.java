@@ -141,6 +141,36 @@ public class Tests  {
 
     }
 
+    public static void testLamportClockImplementation() {
+
+            LamportClock serverClock = new LamportClock(0);
+            LamportClock GETClientClock = new LamportClock(0);
+            LamportClock contentClock1 = new LamportClock(0);
+            LamportClock contentClock2 = new LamportClock(0);
+
+            //Simluate put get put
+
+            // make the arival of msg like put put get
+
+            // and it should wait for get before 2nd put
+
+            //hence i need 3 threads
+
+            // first put
+
+
+
+
+            //serverClock.updateClock(1); // Simulate the server's clock
+    
+            // Invoke the method
+            //AggregationServer.handleClockOrder(GETClientClock.getClock(), serverClock);
+    
+            // Now, you can make assertions based on your expected behavior
+            // For example, check if the server's clock has been updated as expected
+            //assertEquals(3, clock.getClock());
+    }
+
     public static void testEndtoEnd() {
 
         // CONTENT SERVER
@@ -162,7 +192,7 @@ public class Tests  {
         String putBody = Tool.serializeJson(weathers);
         int contentLength = putBody.length();
 
-        String putMessage = Http.HttpRequest("PUT", "/content/weather.json", true, "application/json", contentLength, putBody);
+        String putMessage = Http.HttpRequest("PUT", "/content/weather.json", true, "application/json", contentLength, putBody, null);
 
 
         // AGGREGATION SERVER
