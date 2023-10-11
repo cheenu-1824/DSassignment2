@@ -133,13 +133,14 @@ public class AggregationServer {
             if (clientClock <= serverClock) { // previous req
                 break;
             } else if (clientClock == serverClock + 1) { // next in sequence also slight delay for odd chance prev req has not reached
-                Thread.sleep(100); 
+                Thread.sleep(250); 
                 break;
             } else {
-                Thread.sleep(500); // giving it time for any previous request to come through
+                Thread.sleep(250); // giving it time for any previous request to come through
             }
         }
     }
+
 public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {        
         
         try {

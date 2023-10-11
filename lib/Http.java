@@ -89,7 +89,6 @@ public class Http {
 
     public static void putRequest(BufferedWriter bufferedWriter, LamportClock clock, String body) {
 
-        //clock.incrementClock();
         int contentLength = body.length();
 
         if (!body.isEmpty()) {
@@ -110,7 +109,6 @@ public class Http {
     public static void getRequest(BufferedWriter bufferedWriter, LamportClock clock) {
 
         String getMessage = "";
-        //clock.incrementClock();
         int clockValue = clock.getClock();
         if (clockValue != 0) {
             getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir

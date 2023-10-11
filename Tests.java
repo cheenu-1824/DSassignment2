@@ -105,6 +105,8 @@ public class Tests  {
         System.out.println("2) GETClient display feed");
         System.out.println("3) AggregationServer handle Put To Get");
         System.out.println("4) End to End");
+        System.out.println("5) Lamport Clock Implementation");
+
         System.out.println("<=====================>");
 
         try (Scanner scanner = new Scanner(System.in)) {
@@ -132,6 +134,10 @@ public class Tests  {
                         testEndtoEnd();
                         IntegrationTestingMenu();
                         break;
+                    case 5:
+                        testLamportClockImplementation();
+                        IntegrationTestingMenu();
+                        break;
                     default:
                         System.out.println("Invalid Input, try again!");
                         break;
@@ -141,6 +147,23 @@ public class Tests  {
 
     }
 
+    public static void testHandleClockOrder(LamportClock clock, String msg) throws InterruptedException {
+        
+        int clientClock = Http.extractLamportClock(msg);
+        int serverClock = clock.getClock();
+
+        while (true) {
+            if (clientClock <= serverClock) { // previous req
+                break;
+            } else if (clientClock == serverClock + 1) { // next in sequence also slight delay for odd chance prev req has not reached
+                Thread.sleep(250); 
+                break;
+            } else {
+                Thread.sleep(250); // giving it time for any previous request to come through
+            }
+        }
+    }
+
     public static void testLamportClockImplementation() {
 
             LamportClock serverClock = new LamportClock(0);
@@ -148,27 +171,97 @@ public class Tests  {
             LamportClock contentClock1 = new LamportClock(0);
             LamportClock contentClock2 = new LamportClock(0);
 
-            //Simluate put get put
+            Thread thread1 = new Thread(() -> {
 
-            // make the arival of msg like put put get
+                //zero delay to get and put first
 
-            // and it should wait for get before 2nd put
+                //GET req for lamport clock
+                try {
+                    testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock1.getClock()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                serverClock.updateClock(contentClock1.getClock()); // CS1 -> Agg 
+                contentClock1.updateClock(serverClock.getClock()); // Agg -> CS1
 
-            //hence i need 3 threads
+                //PUT req for weather
+                try {
+                    testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock1.getClock()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                serverClock.updateClock(contentClock1.getClock()); // CS1 -> Agg 
 
-            // first put
+                contentClock1.updateClock(serverClock.getClock()); // Agg -> CS1
+                System.out.println("Thread1 DONE");
+
+            });
+
+            Thread thread2 = new Thread(() -> {
+
+                //Sleep thread to make it get clock second
+                Tool.networkDelay(50);
+
+                //GET req for lamport clock
+                try {
+                    testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(GETClientClock.getClock()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                serverClock.updateClock(GETClientClock.getClock()); // cli -> Agg 
+                GETClientClock.updateClock(serverClock.getClock()); // Agg -> cli
 
 
+                //Sleep thread to make it get feed last
+                Tool.networkDelay(250);
+
+                //GET req for feed
+                try {
+                    testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(GETClientClock.getClock()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                serverClock.updateClock(GETClientClock.getClock()); // cli -> Agg 
+                GETClientClock.updateClock(serverClock.getClock()); // Agg -> cli
+                System.out.println("Thread2 DONE");
+
+            });
+
+            Thread thread3 = new Thread(() -> {
+
+                //Sleep thread to make it get clock third
+                Tool.networkDelay(150);
+
+                //GET req for lamport clock
+                try {
+                    testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock2.getClock()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } 
+                serverClock.updateClock(contentClock2.getClock()); // CS2 -> Agg
+                contentClock2.updateClock(serverClock.getClock()); // Agg -> CS2
 
 
-            //serverClock.updateClock(1); // Simulate the server's clock
-    
-            // Invoke the method
-            //AggregationServer.handleClockOrder(GETClientClock.getClock(), serverClock);
-    
-            // Now, you can make assertions based on your expected behavior
-            // For example, check if the server's clock has been updated as expected
-            //assertEquals(3, clock.getClock());
+                // No delay to make it put feed 2nd
+
+                //PUT req for weather
+                try {
+                    testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock2.getClock()));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }  
+                serverClock.updateClock(contentClock2.getClock()); // CS2 -> Agg
+                contentClock2.updateClock(serverClock.getClock()); // Agg -> CS2
+                System.out.println("Thread3 DONE");
+            });
+
+
+            thread1.start();
+            thread2.start();
+            thread3.start();
+            Tool.networkDelay(1500);
+            System.out.println("MANUAL TEST: Ensure order is 1,2,3 for threads");
+
     }
 
     public static void testEndtoEnd() {
