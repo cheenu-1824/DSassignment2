@@ -141,7 +141,7 @@ public class AggregationServer {
         }
     }
 
-public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {        
+    public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {        
         
         try {
             if (msg.length() < 3) {

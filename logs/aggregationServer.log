@@ -1,18 +1,18 @@
-Oct. 11, 2023 8:51:18 PM AggregationServer main
-INFO: Starting aggregation server on port: 4567
-
-Oct. 11, 2023 8:51:18 PM AggregationServer$2 run
+Oct. 11, 2023 10:43:26 PM AggregationServer$2 run
 INFO: Checking if heartbeat has been recieved for all weather stations...
 
-Oct. 11, 2023 8:51:18 PM AggregationServer$1 run
+Oct. 11, 2023 10:43:26 PM AggregationServer$1 run
 INFO: Weather data has been saved...
 
-Oct. 11, 2023 8:51:21 PM AggregationServer handleGetReq
+Oct. 11, 2023 10:43:26 PM AggregationServer main
+INFO: Starting aggregation server on port: 4567
+
+Oct. 11, 2023 10:43:29 PM AggregationServer handleGetReq
 INFO: GET request has been received...GET /lamportClock HTTP/1.1
 Host: localhost
 Lamport-Clock: 0
 
-Oct. 11, 2023 8:51:21 PM AggregationServer handlePutReq
+Oct. 11, 2023 10:43:30 PM AggregationServer handlePutReq
 INFO: PUT request has been received...
 PUT /content/weather.json HTTP/1.1
 User-Agent: ATOMClient/1/0
@@ -20,46 +20,36 @@ Lamport-Clock: 2
 Content-Type: application/json
 Content-Length: 367
 
-{"id":"IDS60901","name":"Adelaide (West Terrace /  ngayirdapira)","state":"SA","time_zone":"CST","lat":-34.9,"lon":138.6,"local_date_time":"12/02:00pm","local_date_time_full":"20230712160000","air_temp":10.3,"apparent_t":8.5,"cloud":"Cloudy","dewpt":5.2,"press":1003.9,"rel_hum":45,"wind_dir":"S","wind_spd_kmh":20,"wind_spd_kt":9,"updateValue":0,"stationId":175985}
+{"id":"IDS60901","name":"Adelaide (West Terrace /  ngayirdapira)","state":"SA","time_zone":"CST","lat":-34.9,"lon":138.6,"local_date_time":"12/02:00pm","local_date_time_full":"20230712160000","air_temp":10.3,"apparent_t":8.5,"cloud":"Cloudy","dewpt":5.2,"press":1003.9,"rel_hum":45,"wind_dir":"S","wind_spd_kmh":20,"wind_spd_kt":9,"updateValue":0,"stationId":890497}
 
-Oct. 11, 2023 8:51:21 PM AggregationServer handlePostReq
+Oct. 11, 2023 10:43:30 PM AggregationServer handlePostReq
 INFO: POST request has been received...
 POST / HTTP/1.1
 Content-Type: text/plain
 Content-Length: 26
 
-StationId: 175985 is alive
+StationId: 890497 is alive
 
-Oct. 11, 2023 8:51:24 PM AggregationServer handleGetReq
+Oct. 11, 2023 10:43:33 PM AggregationServer handleGetReq
 INFO: GET request has been received...GET /lamportClock HTTP/1.1
 Host: localhost
 Lamport-Clock: 0
 
-Oct. 11, 2023 8:51:24 PM AggregationServer handleGetReq
+Oct. 11, 2023 10:43:33 PM AggregationServer handleGetReq
 INFO: GET request has been received...GET /filesystem/weather.json HTTP/1.1
 Host: localhost
 Lamport-Clock: 5
 
-Oct. 11, 2023 8:51:26 PM AggregationServer handleGetReq
+Oct. 11, 2023 10:43:34 PM AggregationServer handleGetReq
 INFO: GET request has been received...GET /lamportClock HTTP/1.1
 Host: localhost
 Lamport-Clock: 0
 
-Oct. 11, 2023 8:51:26 PM AggregationServer handleGetReq
+Oct. 11, 2023 10:43:34 PM AggregationServer handleGetReq
 INFO: GET request has been received...GET /filesystem/weather.json HTTP/1.1
 Host: localhost
 Lamport-Clock: 8
 
-Oct. 11, 2023 8:51:27 PM AggregationServer handleGetReq
-INFO: GET request has been received...GET /lamportClock HTTP/1.1
-Host: localhost
-Lamport-Clock: 0
-
-Oct. 11, 2023 8:51:27 PM AggregationServer handleGetReq
-INFO: GET request has been received...GET /filesystem/weather.json HTTP/1.1
-Host: localhost
-Lamport-Clock: 11
-
-Oct. 11, 2023 8:51:28 PM AggregationServer$1 run
+Oct. 11, 2023 10:43:36 PM AggregationServer$1 run
 INFO: Weather data has been saved...
 

@@ -12,8 +12,14 @@ import lib.*;
 
 import java.util.Random;
 
+/**
+ * This class contains various testing methods using a menu for running unit and integration tests.
+ */
 public class Tests  {
 
+    /**
+     * Display the testing main menu and handle user input for test selection.
+     */
     public static void menu() {
 
     
@@ -43,6 +49,9 @@ public class Tests  {
         }
     }
 
+    /**
+     * Display the unit testing menu and handle user input for selecting unit tests.
+     */
     public static void UnitTestingMenu() {
         
         System.out.println("<====UnitTesting=====>");
@@ -97,6 +106,9 @@ public class Tests  {
         }
     }
 
+    /**
+     * Display the integration testing menu and handle user input for selecting integration tests.
+     */
     public static void IntegrationTestingMenu() {
         
         System.out.println("<==IntegrationTesting==>");
@@ -147,6 +159,14 @@ public class Tests  {
 
     }
 
+    /**
+     * Used as an replica of the handleClockOrder() function but with a parameter to take in a Lamport Clock
+     * to be used for testing.
+     *
+     * @param clock The LamportClock used to maintain the server's clock.
+     * @param msg The incoming message with a Lamport clock value.
+     * @throws InterruptedException If the thread sleep is interrupted.
+     */
     public static void testHandleClockOrder(LamportClock clock, String msg) throws InterruptedException {
         
         int clientClock = Http.extractLamportClock(msg);
@@ -163,7 +183,11 @@ public class Tests  {
             }
         }
     }
-
+    
+    /**
+     * Test the LamportClock implementation in a multithreaded scenario.
+     * Order of request is PUT, GET, PUT but order recieved in server is PUT, PUT, GET due to simulated network delays.
+     */
     public static void testLamportClockImplementation() {
 
             LamportClock serverClock = new LamportClock(0);
@@ -173,85 +197,70 @@ public class Tests  {
 
             Thread thread1 = new Thread(() -> {
 
-                //zero delay to get and put first
-
-                //GET req for lamport clock
                 try {
                     testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock1.getClock()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                serverClock.updateClock(contentClock1.getClock()); // CS1 -> Agg 
-                contentClock1.updateClock(serverClock.getClock()); // Agg -> CS1
+                serverClock.updateClock(contentClock1.getClock());
+                contentClock1.updateClock(serverClock.getClock());
 
-                //PUT req for weather
                 try {
                     testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock1.getClock()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                serverClock.updateClock(contentClock1.getClock()); // CS1 -> Agg 
+                serverClock.updateClock(contentClock1.getClock());
 
-                contentClock1.updateClock(serverClock.getClock()); // Agg -> CS1
+                contentClock1.updateClock(serverClock.getClock()); 
                 System.out.println("Thread1 DONE");
 
             });
 
             Thread thread2 = new Thread(() -> {
 
-                //Sleep thread to make it get clock second
                 Tool.networkDelay(50);
 
-                //GET req for lamport clock
                 try {
                     testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(GETClientClock.getClock()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                serverClock.updateClock(GETClientClock.getClock()); // cli -> Agg 
-                GETClientClock.updateClock(serverClock.getClock()); // Agg -> cli
+                serverClock.updateClock(GETClientClock.getClock());
+                GETClientClock.updateClock(serverClock.getClock());
 
-
-                //Sleep thread to make it get feed last
                 Tool.networkDelay(250);
 
-                //GET req for feed
                 try {
                     testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(GETClientClock.getClock()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                serverClock.updateClock(GETClientClock.getClock()); // cli -> Agg 
-                GETClientClock.updateClock(serverClock.getClock()); // Agg -> cli
+                serverClock.updateClock(GETClientClock.getClock());
+                GETClientClock.updateClock(serverClock.getClock());
                 System.out.println("Thread2 DONE");
 
             });
 
             Thread thread3 = new Thread(() -> {
 
-                //Sleep thread to make it get clock third
                 Tool.networkDelay(150);
 
-                //GET req for lamport clock
                 try {
                     testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock2.getClock()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } 
-                serverClock.updateClock(contentClock2.getClock()); // CS2 -> Agg
-                contentClock2.updateClock(serverClock.getClock()); // Agg -> CS2
+                serverClock.updateClock(contentClock2.getClock());
+                contentClock2.updateClock(serverClock.getClock());
 
-
-                // No delay to make it put feed 2nd
-
-                //PUT req for weather
                 try {
                     testHandleClockOrder(serverClock, "Lamport-Clock: " + Integer.toString(contentClock2.getClock()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }  
-                serverClock.updateClock(contentClock2.getClock()); // CS2 -> Agg
-                contentClock2.updateClock(serverClock.getClock()); // Agg -> CS2
+                serverClock.updateClock(contentClock2.getClock());
+                contentClock2.updateClock(serverClock.getClock());
                 System.out.println("Thread3 DONE");
             });
 
@@ -264,6 +273,9 @@ public class Tests  {
 
     }
 
+    /**
+     * Perform an end-to-end test of the system.
+     */
     public static void testEndtoEnd() {
 
         // CONTENT SERVER
@@ -333,6 +345,10 @@ public class Tests  {
 
     }
 
+    /**
+     * Test the AggregationServer's handling of PUT requests for weather data.
+     * Ensures it can also form the correct feed response from the PUT.
+     */
     public static void testAggregationServerHandlePutToGet() {
         
         Map<String, List<WeatherObject>> weatherDataMap = new HashMap<>();
@@ -402,6 +418,9 @@ public class Tests  {
 
     }
 
+    /**
+     * Test the GETClient's displayFeed method.
+     */
     public static void testGETClientdisplayFeed() {
 
         String[] feedResponses = new String[2];
@@ -472,6 +491,9 @@ public class Tests  {
 
     }
 
+    /**
+     * Test the ContentServer's handling of PUT requests for weather data.
+     */
     public static void testContentServerPutBody() {
         
         String content = ContentServer.readFile("content/test.txt");
@@ -522,6 +544,9 @@ public class Tests  {
         }
     }
 
+    /**
+     * Test the extractStationId method for AggregationServer.
+     */
     public static void testExtractStationId() {
 
         Random random = new Random();
@@ -540,6 +565,9 @@ public class Tests  {
         }
     }
 
+    /**
+     * Test the getBody method for HTTP responses.
+     */
     public static void testGetBody() {
 
         // NEED TO MAKE TO SHARED TEST BETWEEN GETCLIENT AND AGGREGATIONSERVER
@@ -550,11 +578,11 @@ public class Tests  {
         expectedBodies[0] = "{\"key\": \"value\"}";
 
         responses[1] = "HTTP/1.1 200 OK\r\n\r\n";
-        expectedBodies[1] = null;
+        expectedBodies[1] = "";
 
 
         responses[2] = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 0\r\n\r\n";
-        expectedBodies[2] = null;
+        expectedBodies[2] = "";
 
         responses[3] = "POST / HTTP/1.1\r\nUser-Agent: ATOMClient/1/0\r\nContent-Type: text/plain\r\nContent-Length: 19\r\n\r\nRetrying Connection\r\n";
         expectedBodies[3] = "Retrying Connection";
@@ -564,7 +592,7 @@ public class Tests  {
         expectedBodies[4] = "{\"id\":\"IDS60901\",\"name\":\"Adelaide (West Terrace /  ngayirdapira\",\"state\":\"SA\",\"time_zone\":\"CST\",\"lat\":-34.9,\"lon\":138.6,\"local_date_time\":\"15/04:00pm\",\"local_date_time_full\":\"20230715160000\",\"air_temp\":13.3,\"apparent_t\":9.5,\"cloud\":\"Partly cloudy\",\"dewpt\":5.7,\"press\":1023.9,\"rel_hum\":60,\"wind_dir\":\"S\",\"wind_spd_kmh\":15,\"wind_spd_kt\":8}";
 
         responses[5] = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 110\r\n\r\n"
-        + "{\"id\":\"IDS12345\",\"name\":\"New York City\",\"state\":\"NY\",\"time_zone\":\"EST\",\"lat\":40.7128,\"lon\":-74.0060,\"local_date_time\":\"15/04:30pm\",\"local_date_time_full\":\"20230715163000\",\"air_temp\":21.5,\"apparent_t\":19.8,\"cloud\":\"Partly cloudy\",\"dewpt\":15.2,\"press\":1015.7,\"rel_hum\":55,\"wind_dir\":\"W\",\"wind_spd_kmh\":10,\"wind_spd_kt\":5}\r\n"
+        + "{\"id\":\"IDS12345\",\"name\":\"New York City\",\"state\":\"NY\",\"time_zone\":\"EST\",\"lat\":40.7128,\"lon\":-74.0060,\"local_date_time\":\"15/04:30pm\",\"local_date_time_full\":\"20230715163000\",\"air_temp\":21.5,\"apparent_t\":19.8,\"cloud\":\"Partly cloudy\",\"dewpt\":15.2,\"press\":1015.7,\"rel_hum\":55,\"wind_dir\":\"W\",\"wind_spd_kmh\":10,\"wind_spd_kt\":5}\n"
         + "{\"id\":\"IDS60901\",\"name\":\"Adelaide (West Terrace /  ngayirdapira\",\"state\":\"SA\",\"time_zone\":\"CST\",\"lat\":-34.9,\"lon\":138.6,\"local_date_time\":\"15/04:00pm\",\"local_date_time_full\":\"20230715160000\",\"air_temp\":13.3,\"apparent_t\":9.5,\"cloud\":\"Partly cloudy\",\"dewpt\":5.7,\"press\":1023.9,\"rel_hum\":60,\"wind_dir\":\"S\",\"wind_spd_kmh\":15,\"wind_spd_kt\":8}\r\n";
 
         expectedBodies[5] = "{\"id\":\"IDS12345\",\"name\":\"New York City\",\"state\":\"NY\",\"time_zone\":\"EST\",\"lat\":40.7128,\"lon\":-74.0060,\"local_date_time\":\"15/04:30pm\",\"local_date_time_full\":\"20230715163000\",\"air_temp\":21.5,\"apparent_t\":19.8,\"cloud\":\"Partly cloudy\",\"dewpt\":15.2,\"press\":1015.7,\"rel_hum\":55,\"wind_dir\":\"W\",\"wind_spd_kmh\":10,\"wind_spd_kt\":5}\n"
@@ -574,7 +602,7 @@ public class Tests  {
         for (int i = 0; i < 6; i++) {
             String body = Http.getBody(responses[i]);
 
-            if (body == expectedBodies[i]) {
+            if (body.equals(expectedBodies[i])) {
                 System.out.println("Test " + i + ": PASSED!");
                 numPassed += 1;
             } else {
@@ -586,37 +614,39 @@ public class Tests  {
 
     }
 
+    /**
+     * Tests the parseURL method by providing sample URLs and verifying the results.
+     */
     public static void testParseURL() {
         
-        // NEED TO MAKE TO SHARED TEST BETWEEN GETCLIENT AND CONTENT
         int numPassed = 0;
         String[] urls = new String[5];
         String[] expectedDomain = new String[5];
         String[] expectedPort = new String[5];
-        urls[0] = "localhost:4567";
+        urls[0] = "http://localhost:4567";
         expectedDomain[0] = "localhost";
         expectedPort[0] = "4567";
 
-        urls[1] = "example.com:8080";
+        urls[1] = "http://example.com:8080";
         expectedDomain[1] = "example.com";
         expectedPort[1] = "8080";
         
-        urls[2] = "google.com:80";
+        urls[2] = "http://google.com:80";
         expectedDomain[2] = "google.com";
         expectedPort[2] = "80";
 
-        urls[3] = "weather.com.au:12000";
+        urls[3] = "http://weather.com.au:12000";
         expectedDomain[3] = "weather.com.au";
         expectedPort[3] = "12000";
 
-        urls[4] = "localhost:453";
+        urls[4] = "http://localhost:453";
         expectedDomain[4] = "localhost";
         expectedPort[4] = "453";
 
         for (int i = 0; i < 5; i++) {
             String[] result = Tool.parseURL(urls[i]);
 
-            if (result[0].equals(expectedDomain[i]) == true && result[1].equals(expectedPort[i]) == true) {
+            if (result[0].equals(expectedDomain[i]) && result[1].equals(expectedPort[i])) {
                 System.out.println("Test " + i + ": PASSED!");
                 numPassed += 1;
             } else {
@@ -626,6 +656,9 @@ public class Tests  {
         System.out.println("Number of tests passed: " + numPassed + " of 5");
     }
     
+    /**
+     * Tests the buildWeatherObject method by providing sample input and verifying the results.
+     */
     public static void testBuildWeatherObject() {
             
         int numPassed = 0;
@@ -760,6 +793,9 @@ public class Tests  {
         System.out.println(numPassed + " of 17 field correct!");
     }
 
+    /**
+     * Tests the serialization of a list of WeatherObjects to JSON.
+     */
     public static void testSerializeJson() {
         
         List<WeatherObject> weatherList = new ArrayList<>();
@@ -856,7 +892,9 @@ public class Tests  {
         }
 
     }
-
+    /**
+     * Tests the deserialization of JSON data to a WeatherObject.
+     */
     public static void testDeserializeJson() {
         
         int numPassed = 0;
@@ -1007,6 +1045,12 @@ public class Tests  {
         System.out.println(numPassed + " of 17 field correct!");
 
     }
+
+    /**
+     * The main method of the class. It displays the menu.
+     *
+     * @param args Command-line arguments.
+     */
     public static void main(String[] args) {
 
         menu();

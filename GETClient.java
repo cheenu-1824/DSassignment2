@@ -125,6 +125,13 @@ public class GETClient {
         }
     }
     
+    /**
+     * Handles the Lamport clock header and updates the client's Lamport clock.
+     *
+     * @param bufferedReader A BufferedReader for reading input from the server.
+     *
+     * @throws IOException If there's an issue reading from the BufferedReader.
+     */
     public static void handleLamportClock(BufferedReader bufferedReader) {
         
         try {

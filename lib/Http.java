@@ -5,8 +5,17 @@ import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The Http class provides utility methods for handling HTTP requests and responses for client-server interactions.
+ */
 public class Http {
 
+    /**
+     * Extracts the Lamport clock value from a given string.
+     *
+     * @param input The input string containing the Lamport clock information.
+     * @return The extracted Lamport clock value as an integer, or -1 if not found.
+     */
     public static int extractLamportClock(String input) {
 
         Pattern pattern = Pattern.compile("Lamport-Clock: (\\d+)");
@@ -20,6 +29,13 @@ public class Http {
         }
     }
 
+    /**
+     * Retries a delayed reconnection to the server with a specified number of retries.
+     *
+     * @param serverAddress The server's address to connect to.
+     * @param port          The server's port to connect to.
+     * @return A Socket instance if the connection is established, or null if retries are exhausted.
+     */
     public static Socket retryConnection(String serverAddress, int port) {
         int tries = 0;
         String response = "";
@@ -61,8 +77,14 @@ public class Http {
         return null;
     }
 
+    /**
+     * Sends a POST request to the server with option to send a retry message instead.
+     *
+     * @param bufferedWriter The BufferedWriter for sending the request.
+     * @param stationId      The station ID for the request.
+     * @param retry          Indicates if this is a retry request.
+     */
     public static void postRequest(BufferedWriter bufferedWriter, String stationId, boolean retry) {
-        // Get content length
         String content = "";
         int contentLength = 0;
 
@@ -87,6 +109,13 @@ public class Http {
         } 
     }
 
+    /**
+     * Sends a PUT request to the server with a request headers and a request body.
+     *
+     * @param bufferedWriter The BufferedWriter for sending the request.
+     * @param clock          The Lamport clock for the request.
+     * @param body           The request body to be sent.
+     */
     public static void putRequest(BufferedWriter bufferedWriter, LamportClock clock, String body) {
 
         int contentLength = body.length();
@@ -106,16 +135,23 @@ public class Http {
         } 
     }
 
+    /**
+     * Sends a GET request to the server for the feed
+     * If Lamport clock value if requester is 0, it will send a get request for the servers clock.
+     *
+     * @param bufferedWriter The BufferedWriter for sending the request.
+     * @param clock          The Lamport clock for the request.
+     */
     public static void getRequest(BufferedWriter bufferedWriter, LamportClock clock) {
 
         String getMessage = "";
         int clockValue = clock.getClock();
         if (clockValue != 0) {
-            getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n" //find correct dir
+            getMessage = "GET /filesystem/weather.json HTTP/1.1\r\n"
             + "Host: " + "localhost\r\n" 
             + "Lamport-Clock: " + clockValue + "\r\n\r\n";
         } else {
-            getMessage = "GET /lamportClock HTTP/1.1\r\n" //find correct dir
+            getMessage = "GET /lamportClock HTTP/1.1\r\n"
             + "Host: " + "localhost\r\n" 
             + "Lamport-Clock: " + clockValue + "\r\n\r\n";
         }
@@ -130,6 +166,18 @@ public class Http {
 
     }
 
+    /**
+     * Generates an HTTP request message with various headers and content.
+     *
+     * @param reqType       The HTTP request type (e.g., "POST", "PUT", "GET").
+     * @param resource      The resource path.
+     * @param userAgent     Indicates if the User-Agent header should be included.
+     * @param contentType   The Content-Type header value.
+     * @param contentLength The Content-Length header value.
+     * @param msg           The request message body.
+     * @param clock         The Lamport clock for the request.
+     * @return The formatted HTTP request message.
+     */
     public static String HttpRequest(String reqType, String resource, Boolean userAgent, String contentType, int contentLength, String msg, LamportClock clock) {
         
         String httpMsg = reqType + " ";
@@ -166,6 +214,13 @@ public class Http {
         return httpMsg;
     }
 
+    /**
+     * Generates an HTTP response message with a specified status code and content length.
+     *
+     * @param status        The HTTP response status code (200, 201, 500, etc).
+     * @param contentLength The Content-Length header value.
+     * @return The formatted HTTP response message.
+     */
     public static String HttpResponse(int status, int contentLength) {
 
         String httpMsg = "HTTP/1.1 " + status + " " + getStatusMsg(status) + "\r\n";
@@ -174,6 +229,13 @@ public class Http {
         return httpMsg;
     }
 
+    /**
+     * Generates an HTTP response message with a specified status code and a Lamport clock value.
+     *
+     * @param status The HTTP response status code (200).
+     * @param clock  The Lamport clock for the response.
+     * @return The formatted HTTP response message.
+     */
     public static String HttpResponse(int status, LamportClock clock) {
 
         String httpMsg = "HTTP/1.1 " + status + " " + getStatusMsg(status) + "\r\n";
@@ -182,6 +244,12 @@ public class Http {
         return httpMsg;
     }
 
+    /**
+     * Generates an HTTP response message with a specified status code.
+     *
+     * @param status The HTTP response status code (200, 201, 500, etc).
+     * @return The formatted HTTP response message.
+     */
     public static String HttpResponse(int status) {
 
         String httpMsg = "HTTP/1.1 " + status + " " + getStatusMsg(status) + "\r\n\r\n";
@@ -189,6 +257,13 @@ public class Http {
 
     }
 
+    /**
+     * Retrieves the status message associated with a given HTTP response status code.
+     *
+     * @param status The HTTP response status code.
+     * @return The corresponding status message ( status 200 is "OK").
+     * @throws RuntimeException If the status code is invalid.
+     */
     public static String getStatusMsg(int status) {
         
         switch (status) {
@@ -203,6 +278,12 @@ public class Http {
         }
     }
 
+    /**
+     * Extracts and returns the body from an HTTP request or response.
+     *
+     * @param msg The HTTP request or response message.
+     * @return The message body, or null if not found or malformed.
+     */
     public static String getBody(String msg) {
 
         if (msg.length() == 0) {
@@ -221,13 +302,21 @@ public class Http {
 
         if (contentIndex != -1) {
             String requestBody = msg.substring(contentIndex);
-            return requestBody;
+            return requestBody.trim();
         } else {
             System.out.println("Error: Content has been malformed...");
             return null;
         }
     }
 
+    /**
+     * Writes a HTTP request/response to the given BufferedWriter.
+     *
+     * @param bufferedWriter The BufferedWriter for writing the request/response.
+     * @param response       The HTTP request/response message to write.
+     * @throws IOException If an I/O error occurs while writing.
+     * @throws IllegalArgumentException If the request/response does not end with '\r\n'.
+     */
     public static void write(BufferedWriter bufferedWriter, String response) throws IOException {
 
         if (!response.endsWith("\r\n")) {
@@ -238,6 +327,13 @@ public class Http {
         bufferedWriter.flush();
     }
 
+    /**
+     * Reads and prints an HTTP response from the given BufferedReader, and sends a "BYE" message to close the connection to the server.
+     *
+     * @param bufferedWriter The BufferedWriter for sending the "BYE" message.
+     * @param bufferedReader  The BufferedReader for reading the response.
+     * @throws IOException If an I/O error occurs while reading or writing.
+     */
     public static void read(BufferedWriter bufferedWriter, BufferedReader bufferedReader) throws IOException {
 
         String response = "";
