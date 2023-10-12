@@ -343,7 +343,7 @@ public class Http {
             response = bufferedReader.readLine();
             System.out.println(response);
     
-            if (response != null && response.isBlank()) {
+            if (response != null && response.trim().isEmpty()) {
                 Http.write(bufferedWriter, "BYE\r\n");
                 bufferedReader.readLine();
                 break;

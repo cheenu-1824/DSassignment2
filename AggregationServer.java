@@ -145,7 +145,7 @@ public class AggregationServer {
             boolean isContent = false;
             while (true) {
                 String line = bufferedReader.readLine();
-                if (line.isBlank()) {
+                if (line.trim().isEmpty()) {
                     if (reqType == "GET") {
                         break;
                     } else if (isContent == true){
