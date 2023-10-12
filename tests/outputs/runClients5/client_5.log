@@ -1,0 +1,32 @@
+HTTP/1.1 200 OK
+Lamport-Clock: 11
+
+HTTP/1.1 200 OK
+Content-Length: 362
+
+{"id":"IDS60901","name":"Adelaide (West Terrace /  ngayirdapira)","state":"SA","time_zone":"CST","lat":-34.9,"lon":138.6,"local_date_time":"12/02:00pm","local_date_time_full":"20230712160000","air_temp":10.3,"apparent_t":8.5,"cloud":"Cloudy","dewpt":5.2,"press":1003.9,"rel_hum":45,"wind_dir":"S","wind_spd_kmh":20,"wind_spd_kt":9,"updateValue":0,"stationId":1}
+
+
+<=====WEATHER FEED=====>
+
+ID: IDS60901
+Name: Adelaide (West Terrace /  ngayirdapira)
+State: SA
+Time Zone: CST
+Latitude: -34.9
+Longitude: 138.6
+Local Date Time: 12/02:00pm
+Local Date Time Full: 20230712160000
+Air Temperature: 10.3
+Apparent Temperature: 8.5
+Cloud: Cloudy
+Dew Point: 5.2
+Pressure: 1003.9
+Relative Humidity: 45
+Wind Direction: S
+Wind Speed (km/h): 20
+Wind Speed (kt): 9
+
+<======================>
+
+Request was handled sucessfully...

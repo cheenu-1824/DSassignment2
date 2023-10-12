@@ -1,0 +1,17 @@
+id:
+name:New York City
+state:NY
+time_zone:EST
+lat:40.7128
+lon:-74.0060
+local_date_time:2/04:30pm
+local_date_time_full:20230702163000
+air_temp:19.5
+apparent_t:17.8
+cloud:Sunny
+dewpt:12.2
+press:1005.7
+rel_hum:50
+wind_dir:W
+wind_spd_kmh:15
+wind_spd_kt:8

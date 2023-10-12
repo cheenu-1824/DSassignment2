@@ -20,14 +20,13 @@ public class GETClient {
     private static BufferedWriter bufferedWriter = null;
     private static LamportClock clock = new LamportClock(0);
 
-
     /**
      * Sets up the reader and writer for the socket.
      *
      * @param socket The socket connection to the server.
      * @throws IOException If an I/O error occurs while setting up the reader and writer.
      */
-    public static void setReaderWriter(Socket socket) throws IOException {
+    private static void setReaderWriter(Socket socket) throws IOException {
         
         inputStreamReader = new InputStreamReader(socket.getInputStream());
         outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
@@ -42,7 +41,7 @@ public class GETClient {
      * @param bufferedReader The buffered reader to read the message from.
      * @return The complete message as a string.
      */
-    public static String buildMsg(BufferedReader bufferedReader) {
+    private static String buildMsg(BufferedReader bufferedReader) {
 
         StringBuilder content = new StringBuilder();
         try {
@@ -72,7 +71,7 @@ public class GETClient {
      * @param bufferedReader The buffered reader for reading the server's response.
      * @return A list of WeatherObject instances containing weather data.
      */
-    public static List<WeatherObject> handleRes(BufferedReader bufferedReader) {
+    private static List<WeatherObject> handleRes(BufferedReader bufferedReader) {
         
         String msg = buildMsg(bufferedReader);
         String body = Http.getBody(msg);
@@ -97,7 +96,7 @@ public class GETClient {
      *
      * @param weatherData A list of WeatherObject instances containing weather data.
      */
-    public static void displayWeather(List<WeatherObject> weatherData) {
+    protected synchronized static void displayWeather(List<WeatherObject> weatherData) {
 
         System.out.println("\n\n<=====WEATHER FEED=====>\n");
 
@@ -132,7 +131,7 @@ public class GETClient {
      *
      * @throws IOException If there's an issue reading from the BufferedReader.
      */
-    public static void handleLamportClock(BufferedReader bufferedReader) {
+    private static void handleLamportClock(BufferedReader bufferedReader) {
         
         try {
             String lamportClockHeader = bufferedReader.readLine();
@@ -206,12 +205,7 @@ public class GETClient {
             }
             displayWeather(weatherData);
 
-            // Simulate network delay
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                System.out.println("Failed to wait");
-            }
+            Tool.networkDelay(100);
 
             String msg = "BYE\r\n";
             Http.write(bufferedWriter, msg);
@@ -222,7 +216,7 @@ public class GETClient {
                 System.out.println("Failed to handle request sucessfully...");
             }
         } catch (IOException e){
-            System.out.println("Connection to aggregation server was lost...");
+            System.out.println("Failed to establish connection to aggregation server...");
         } finally {
             try {
                 Tool.closeSocket(socket);

@@ -4,6 +4,8 @@ import java.net.*;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
 
@@ -110,6 +112,19 @@ public class Tool {
         } else {
             throw new IllegalArgumentException("Invalid URL format: " + url + ". Correct usage: <domain>:<port>");
         }
+    }
+
+    /**
+     * Checks whether a line of text representing an entry is valid according to a specific pattern.
+     *
+     * @param line A line of text to be validated.
+     * @return true if the line matches the expected pattern, false otherwise.
+     */
+    public static boolean isEntryValid(String line) {
+        final Pattern validInputLine = Pattern.compile("^[\\w]+:[\\w\\s():.-/]+|^[\\w]+:-[\\w\\s():.-/]+");
+        Matcher matcher = validInputLine.matcher(line);
+
+        return matcher.matches();
     }
 
     /**

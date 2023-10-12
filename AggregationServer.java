@@ -20,7 +20,14 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 
-
+/**
+ * The Aggregation Server class represents a multi-thread server that manages weather data received from
+ * various contetn servers. It listens for clients, handles the requests on new threads, stores new weather
+ * data and sends updated weather feeds to GETClients. The server has the ability to periodically save
+ * weather data into a local filesystem and checks for content server heartbeat to ensure that weather 
+ * received is still up to date.
+ *
+ */
 public class AggregationServer {
 
     private static Map<String, List<WeatherObject>> weatherDataMap = new HashMap<>();
@@ -36,7 +43,13 @@ public class AggregationServer {
     private static BufferedReader bufferedReader = null;
     private static BufferedWriter bufferedWriter = null;
 
-    public static void setReaderWriter(Socket socket) throws IOException {
+    /**
+     * Sets up the reader and writer for the socket.
+     *
+     * @param socket The socket connection to a client.
+     * @throws IOException If an I/O error occurs while setting up the reader and writer.
+     */
+    private static void setReaderWriter(Socket socket) throws IOException {
         
         inputStreamReader = new InputStreamReader(socket.getInputStream());
         outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
@@ -45,7 +58,12 @@ public class AggregationServer {
 
     }
 
-    public static List<WeatherObject> getFeed() {
+    /**
+     * Retrieves the latest weather data feed by selecting the most recent data for each weather Id.
+     *
+     * @return A list of WeatherObject instances representing the latest weather data feed.
+     */
+    protected static List<WeatherObject> getFeed() {
         List<WeatherObject> feed = new ArrayList<>();
 
         for (List<WeatherObject> weatherList : AggregationServer.weatherDataMap.values()) {
@@ -60,12 +78,22 @@ public class AggregationServer {
         return feed;
     }
 
-    public synchronized static void updateStationHeartbeat(WeatherObject weather) {
+    /**
+     * Updates the heartbeat status for the station who has given weather data.
+     *
+     * @param weather The WeatherObject representing the weather data from a station.
+     */
+    private synchronized static void updateStationHeartbeat(WeatherObject weather) {
         int stationId = weather.getStationId();
         stationHeartbeat.put(stationId, true);
     }
 
-    public synchronized static void addWeatherData(WeatherObject weather) {
+    /**
+     * Adds weather data to the server storage, associating it with a specific weather station.
+     *
+     * @param weather The WeatherObject representing the weather data to be added.
+     */
+    protected synchronized static void addWeatherData(WeatherObject weather) {
 
         updateStationHeartbeat(weather);
 
@@ -80,8 +108,10 @@ public class AggregationServer {
         }
     }
 
-    //TESTING FUNC!!!!!!!
-    public static void printWeatherMap() {
+    /**
+     * Prints the weather entries stored in the AggregationServer's weather data map.
+     */
+    protected static void printWeatherMap() {
 
         System.out.println("<=====Weather Entries=====>");
 
@@ -98,7 +128,15 @@ public class AggregationServer {
         }
     }
 
-    public static String buildMsg(BufferedReader bufferedReader, String msg, String reqType) {
+    /**
+     * Builds a message from the input BufferedReader, given the message content, and depends on the request type.
+     *
+     * @param bufferedReader The BufferedReader to read the message from.
+     * @param msg           The initial message content.
+     * @param reqType       The type of request (PUT, GET, or POST).
+     * @return A string containing the complete message.
+     */
+    private static String buildMsg(BufferedReader bufferedReader, String msg, String reqType) {
         StringBuilder content = new StringBuilder();
 
         content.append(msg).append("\n");
@@ -107,7 +145,6 @@ public class AggregationServer {
             boolean isContent = false;
             while (true) {
                 String line = bufferedReader.readLine();
-                //System.out.println(line);
                 if (line.isBlank()) {
                     if (reqType == "GET") {
                         break;
@@ -125,23 +162,37 @@ public class AggregationServer {
         return content.toString().trim();
     }  
 
-    public static void handleClockOrder(String msg) throws InterruptedException {
+    /**
+     * Handles the ordering of requests based on Lamport clocks by giving 
+     * out of order request time to be processed.
+     *
+     * @param msg The incoming message with Lamport clock information.
+     * @throws InterruptedException If interrupted while waiting for previous requests to complete.
+     */
+    private static void handleClockOrder(String msg) throws InterruptedException {
         
         int clientClock = Http.extractLamportClock(msg);
         int serverClock = clock.getClock();
         while (true) {
-            if (clientClock <= serverClock) { // previous req
+            if (clientClock <= serverClock) {
                 break;
-            } else if (clientClock == serverClock + 1) { // next in sequence also slight delay for odd chance prev req has not reached
+            } else if (clientClock == serverClock + 1) {
                 Thread.sleep(250); 
                 break;
             } else {
-                Thread.sleep(250); // giving it time for any previous request to come through
+                Thread.sleep(250);
             }
         }
     }
 
-    public static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {        
+    /**
+     * Handles incoming requests of type GET, PUT and POST requests.
+     *
+     * @param bufferedReader The BufferedReader containing the request message.
+     * @param bufferedWriter The BufferedWriter for writing the response.
+     * @param msg           The incoming message.
+     */
+    protected static void handleReq(BufferedReader bufferedReader, BufferedWriter bufferedWriter, String msg) {        
         
         try {
             if (msg.length() < 3) {
@@ -185,7 +236,11 @@ public class AggregationServer {
         }
     }
 
-    public static void updateWeatherValue() {
+    /**
+     * Updates the updateValue attribute of all weather objects in the AggregationServer's data map.
+     * This value describes how many new weather entries have arrived since it has arrived.
+     */
+    protected static void updateWeatherValue() {
         for (Map.Entry<String, List<WeatherObject>> entry : AggregationServer.weatherDataMap.entrySet()) {
             List<WeatherObject> weatherList = entry.getValue();
 
@@ -195,7 +250,11 @@ public class AggregationServer {
         }
     }
 
-    public static void removeOutdatedWeather() {
+    /**
+     * Removes outdated weather data from the AggregationServer's data map based on updateValue.
+     * Removes weather data that is atleast 20 entries old.
+     */
+    protected static void removeOutdatedWeather() {
         for (Map.Entry<String, List<WeatherObject>> entry : AggregationServer.weatherDataMap.entrySet()) {
             List<WeatherObject> weatherList = entry.getValue();
             Iterator<WeatherObject> iterator = weatherList.iterator();
@@ -211,7 +270,13 @@ public class AggregationServer {
         }
     }
     
-    public static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
+    /**
+     * Handles PUT requests, updates Lamport clocks, processes the request, and generates a response.
+     *
+     * @param bufferedWriter The BufferedWriter for writing the response.
+     * @param msg           The PUT request message.
+     */
+    private static void handlePutReq(BufferedWriter bufferedWriter, String msg) {
 
         logger.log(Level.INFO, "PUT request has been received...\n" + msg + "\n");
         int sentClock = Http.extractLamportClock(msg);
@@ -221,7 +286,6 @@ public class AggregationServer {
             
             Http.write(bufferedWriter, "PUT request received!\r\n");
 
-            // CHECK IF FILE EXIST
             File weatherFile = new File("filesystem/weather.json");
             String putResponse = "";
             if (weatherFile.exists()) {
@@ -230,7 +294,6 @@ public class AggregationServer {
                 putResponse = Http.HttpResponse(201);
             }
 
-            // Increament all updateValue
             updateWeatherValue();
 
             List<String> json = Tool.splitJson(Http.getBody(msg));
@@ -255,13 +318,8 @@ public class AggregationServer {
                 saveWeatherPeriodically.run();
             }
 
-            //Remove weather entries that is not in last 20 updates
             removeOutdatedWeather();
-
-            //Testing
             printWeatherMap();
-
-
 
             Http.write(bufferedWriter, putResponse);
     
@@ -271,9 +329,16 @@ public class AggregationServer {
     
     }
 
-    public static void handleGetReq(BufferedWriter bufferedWriter, String msg) throws IOException {
+    /**
+     * Handles GET requests, updates Lamport clocks, processes the request, and generates a response.
+     *
+     * @param bufferedWriter The BufferedWriter for writing the response.
+     * @param msg           The GET request message.
+     * @throws IOException If an IO error occurs while processing the request.
+     */
+    private static void handleGetReq(BufferedWriter bufferedWriter, String msg) throws IOException {
         
-        logger.log(Level.INFO, "GET request has been received..." + msg + "\n");
+        logger.log(Level.INFO, "GET request has been received...\n" + msg + "\n");
         int sentClock = Http.extractLamportClock(msg);
         clock.updateClock(sentClock);
 
@@ -304,7 +369,13 @@ public class AggregationServer {
         }
     }
 
-    public static void handlePostReq(BufferedWriter bufferedWriter, String msg) {
+    /**
+     * Handles POST requests, updates station heartbeat or accepts retried connection, and generates a response.
+     *
+     * @param bufferedWriter The BufferedWriter for writing the response.
+     * @param msg           The POST request message.
+     */
+    private static void handlePostReq(BufferedWriter bufferedWriter, String msg) {
         
         logger.log(Level.INFO, "POST request has been received...\n" + msg  + "\n");
 
@@ -312,13 +383,10 @@ public class AggregationServer {
     
             Http.write(bufferedWriter, "POST request received!\r\n");
             
-            // extract stationID
             msg = Http.getBody(msg);
             int stationId = -1;
             if (!msg.equals("Retrying connection")) {
                 stationId = extractStationId(msg);
-
-                // update stationId to true
                 if (stationId != -1){
                     handleHeartbeat(stationId);
                 } else {
@@ -337,14 +405,17 @@ public class AggregationServer {
         }
     }
 
-    public static int extractStationId(String msg) {
+    /**
+     * Extracts the station ID from the provided body of a POST request.
+     *
+     * @param msg The message containing station ID information.
+     * @return The extracted station ID or -1 if not found or invalid.
+     */
+    protected static int extractStationId(String msg) {
         int index = msg.indexOf(':');
         int stationId = -1;
         if (index != -1) {
-            // Extract the part of the string after the colon
             String restOfMsg = msg.substring(index + 1).trim();
-
-            // Split the remaining text by spaces to get words
             String[] words = restOfMsg.split(" ");
 
             if (words.length > 0) {
@@ -354,7 +425,12 @@ public class AggregationServer {
         return stationId;
     }
 
-    public synchronized static String weatherDataMapToJson() {
+    /**
+     * Converts the data in the weatherDataMap to a JSON-formatted string.
+     *
+     * @return The JSON string containing weather data.
+     */
+    private synchronized static String weatherDataMapToJson() {
 
         StringBuilder fullJson = null;
 
@@ -374,6 +450,11 @@ public class AggregationServer {
         return fullJson.toString();
     }
 
+    /**
+     * Saves the weather data to a file in JSON format.
+     *
+     * @param json The JSON-formatted weather data to save.
+     */
     private synchronized static void saveWeatherData(String json) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("filesystem/weather.json"))) {
             bufferedWriter.write(json);
@@ -383,7 +464,10 @@ public class AggregationServer {
         }
     }
 
-    public synchronized static void uploadWeatherData() {
+    /**
+     * Uploads weather data from a local JSON file into the weatherDataMap.
+     */
+    private synchronized static void uploadWeatherData() {
 
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader("filesystem/weather.json"))) {
 
@@ -401,7 +485,12 @@ public class AggregationServer {
         }
     }
 
-    public synchronized static void removeStationWeather(int stationId) {
+    /**
+     * Removes weather data with the specific station ID from the weatherDataMap.
+     *
+     * @param stationId The station ID for which to remove associated data.
+     */
+    private synchronized static void removeStationWeather(int stationId) {
         Iterator<Map.Entry<String, List<WeatherObject>>> iterator = weatherDataMap.entrySet().iterator();
     
         while (iterator.hasNext()) {
@@ -424,7 +513,12 @@ public class AggregationServer {
         }
     }
 
-    public synchronized static void handleHeartbeat(int stationId) {
+    /**
+     * Updates the heartbeat status for a station ID in the stationHeartbeat map.
+     *
+     * @param stationId The station ID to update the heartbeat status for.
+     */
+    private synchronized static void handleHeartbeat(int stationId) {
         for (Map.Entry<Integer, Boolean> entry : stationHeartbeat.entrySet()) {
             int stationIdMap = entry.getKey();
             if (stationIdMap == stationId) {
@@ -434,7 +528,10 @@ public class AggregationServer {
         }
     }
     
-    public synchronized static void checkHeartbeat() {
+    /**
+     * Checks the heartbeat status of stations and removes data for stations with no recent heartbeat.
+     */
+    private synchronized static void checkHeartbeat() {
         for (Map.Entry<Integer, Boolean> entry : stationHeartbeat.entrySet()) {
             int stationId = entry.getKey();
             if (entry.getValue() == true){
@@ -446,6 +543,9 @@ public class AggregationServer {
         }
     }
 
+    /**
+     * Runnable task for periodically saving weather data to a JSON file.
+     */
     private static Runnable saveWeatherPeriodically = new Runnable() {
         public void run() {
 
@@ -456,6 +556,9 @@ public class AggregationServer {
         }
     };
 
+    /**
+     * Runnable task for periodically checking station heartbeat status and removing outdated data.
+     */
     private static Runnable checkHeartbeatPeriodically = new Runnable() {
         public void run() {
 
@@ -463,14 +566,18 @@ public class AggregationServer {
             logger.log(Level.INFO, "Checking if heartbeat has been recieved for all weather stations...\n");
 
         }
-    };       
+    };   
+    
+    /**
+     * The main class for the Aggregation Server, responsible for handling client connections and requests.
+     *
+     * @param args Command-line arguments. Optionally choose the port for the server.
+     */
     public static void main(String[] args) {
-
-        int maxClients = 1;
+        int maxClients = 10;
         int port = 4567;
         logger.setLevel(Level.INFO);
 
-        // Start logging 
         try {
             FileHandler fileHandler = new FileHandler("logs/aggregationServer.log");
             fileHandler.setFormatter(new SimpleFormatter());
@@ -485,14 +592,11 @@ public class AggregationServer {
             port = Integer.parseInt(args[0]);
         }
 
-        // Upload weather from local filesystem
         File weatherFile = new File("filesystem/weather.json");
-
         if (weatherFile.exists()) {
             uploadWeatherData();
         }
 
-        // Begin saving weather data to filesystem periodically & checking for heartbeat from content servers
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
         while (weatherFile.exists()){
             executor.scheduleAtFixedRate(saveWeatherPeriodically, 0, 10, TimeUnit.SECONDS);
@@ -501,14 +605,10 @@ public class AggregationServer {
         }
 
         try {
-
             logger.log(Level.INFO, "Starting aggregation server on port: " + port + "\n");
             serverSocket = new ServerSocket(port);
-
             while (true) {
-
                 try {
-
                     socket = serverSocket.accept();
 
                     int i = 1;
@@ -520,12 +620,9 @@ public class AggregationServer {
                                 break;
                             }
                         }
-                    }    
-                    
+                    }      
                     if (i == maxClients) {
-
                         setReaderWriter(socket);
-
                         Http.write(bufferedWriter, "Server too busy. Please try again later...\r\n");
 
                         logger.log(Level.INFO, "Connection from a client has been received but server is too busy...\n");
@@ -533,16 +630,13 @@ public class AggregationServer {
                         Tool.closeSocket(socket);
                         Tool.closeOutputStreamWriter(outputStreamWriter);
                         Tool.closeBufferedWriter(bufferedWriter);
-
                     }
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "Aggregation server socket was unexxpectdly closed...\n");
                 }
             }
-
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Aggregation server failed to listen on port: " + port + "\n");
         }
     }
-
 }

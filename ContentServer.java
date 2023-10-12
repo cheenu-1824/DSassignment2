@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 import lib.*;
 
+/**
+ * This class represents a content server that communicates with an aggregation server to input weather data.
+ */
 public class ContentServer {
 
     private static int stationId = -1;
@@ -24,13 +27,29 @@ public class ContentServer {
     private static LamportClock clock = new LamportClock(0);
 
 
-    private static void setStationId() {
+    /**
+     * Generates a random station ID and assigns it to the content servers stationId variable.
+     * Uses oldStationId as the content server stationId to simulate a content server restart.
+     */
+    private static void setStationId(int oldStationId) {
+
+        if (oldStationId != -1) {
+            ContentServer.stationId = oldStationId;
+            return;
+        }
+
         Random random = new Random();
         int randomNumber = random.nextInt(1000000);
         ContentServer.stationId = randomNumber;
 
     }
 
+    /**
+     * Sets up the reader and writer for the socket.
+     *
+     * @param socket The socket connection to the server.
+     * @throws IOException If an I/O error occurs while setting up the reader and writer.
+     */
     private static void setReaderWriter(Socket socket) throws IOException {
         
         inputStreamReader = new InputStreamReader(socket.getInputStream());
@@ -40,6 +59,12 @@ public class ContentServer {
 
     }
 
+    /**
+     * Reads the contents of a file and returns it as a string.
+     *
+     * @param filename The name of the file to read.
+     * @return The content of the file as a string.
+     */
     protected static String readFile(String filename) {
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -62,6 +87,12 @@ public class ContentServer {
         return stringBuilder.toString();
     }
 
+    /**
+     * Parses the input weather data string and constructs it as a WeatherObject.
+     *
+     * @param input The input string representing weather data.
+     * @return A WeatherObject containing the parsed data.
+     */
     protected static WeatherObject buildWeatherObject(String input) {
 
         String[] lines = input.split("\n");
@@ -136,6 +167,12 @@ public class ContentServer {
         return weather;
     }
 
+    /**
+     * Splits a string of weather datas into separate entries.
+     *
+     * @param input The input string containing weather data.
+     * @return A list of strings, each representing a weather entry.
+     */
     protected static List<String> splitWeatherData(String input) {
         String[] weatherData = input.split("id:");
     
@@ -148,17 +185,42 @@ public class ContentServer {
         return formattedWeatherData;
     }
 
-    protected static List<String> removeInvalidWeather(List<String> weatherData) { // eof thing needs to be implemented
+    /**
+     * Removes invalid weather entries from the list.
+     *
+     * @param weatherData A list of weather data entries.
+     * @return A list of weather data entries with invalid entries removed.
+     */
+
+    protected static List<String> removeInvalidWeather(List<String> weatherData) {
         Iterator<String> iterator = weatherData.iterator();
         while (iterator.hasNext()) {
+
             String entry = iterator.next();
-            if (entry.contains("id:name")) { // THIS MAY NOT BE RIGHT, DEPENDS IF ERROR ID MEANS ID FIELD IS BLANK
-                iterator.remove();
+            String[] lines = entry.split("\n");
+
+            for (String line : lines) {
+                if (!Tool.isEntryValid(line)) {
+                    if (line != "eof") {
+                        iterator.remove();
+                        break;
+                    }
+                }
+            }
+
+            if (entry.contains("eof")) {
+                entry = entry.replaceAll("\\b" + "eof" + "\\b", "");
             }
         }
         return weatherData;
     }
 
+    /**
+     * Sends a heartbeat to the aggregation server to indicate that the content server is still alive.
+     *
+     * @param serverAddress The address of the aggregation server.
+     * @param port The port number of the aggregation server.
+     */
     private static void sendHeartbeat(String serverAddress, int port) {
 
         Socket socket = null;
@@ -219,6 +281,13 @@ public class ContentServer {
         }
     }
 
+    /**
+     * Runnable for sending a heartbeat periodically every 15 seconds.
+     *
+     * @param serverAddress The address of the aggregation server.
+     * @param port The port number of the aggregation server.
+     * @return A runnable object for sending a heartbeat.
+     */
     private static Runnable sendHeartbeatPeriodically(final String serverAddress, final int port) {
         return new Runnable() {
             public void run() {
@@ -227,6 +296,13 @@ public class ContentServer {
         };
     }
 
+    /**
+     * Handles Lamport clock synchronization to order events with the aggregation server.
+     *
+     * @param bufferedReader The BufferedReader for reading server responses.
+     * @param body The request body to send to the server.
+     * @return The response from the server.
+     */
     public static String handleLamportClock(BufferedReader bufferedReader, String body) {
         
         String response = "";
@@ -250,54 +326,50 @@ public class ContentServer {
 
     }
 
+    /**
+     * Main method for running the content server.
+     *
+     * @param args Command-line arguments for server configuration.
+     */
     public static void main(String[] args) {
-        
         String serverAddress = "localhost";
         int port = 4567;
         String filename = "content/test.txt";
 
-        setStationId();
-
-        if (args.length != 2){
-            System.out.println("Incorrect parameters, input should be as follows: java ContentServer <domain:port> <file location>");
+        if (args.length != 2 && args.length != 3){
+            System.out.println("Incorrect parameters, input should be as follows: java ContentServer <domain:port> <file location> <stationId (Not required)>");
             System.exit(1);
         }
-
-        // Parse URL in server address and port
+        if (args.length == 3) {
+            setStationId(Integer.parseInt(args[2]));
+        } else {
+            setStationId(-1);
+        }
         String[] splitURL = Tool.parseURL(args[0]);
         serverAddress = splitURL[0];
         port = Integer.parseInt(splitURL[1]);
         filename = args[1];
 
-        // Read file from file system
         String content = readFile(filename);
-
-        // Split file into seperate entries
         List<String> weatherData = splitWeatherData(content);
-
-        // Remove invalid entries
         weatherData = removeInvalidWeather(weatherData);
-
-        // Build objects for each entry in content
+        if (weatherData.isEmpty()) {
+            System.out.println("Error: No valid weather data found from the input file...");
+            System.exit(1);
+        }
         List<WeatherObject> weathers = new ArrayList<>();
         for (String weather : weatherData) {
             weathers.add(buildWeatherObject(weather));
         }
-
-        // Serializes object to JSON string
         String body = Tool.serializeJson(weathers);
 
         try {
-
             socket = new Socket(serverAddress, port);
-
             setReaderWriter(socket);
-
             Http.getRequest(bufferedWriter, clock);
             Tool.networkDelay(100);
             boolean sentReq = true;
             String response = "";
-
             response = bufferedReader.readLine();
             System.out.println(response);
             if (response.equals("Server too busy. Please try again later...")) {
@@ -310,14 +382,11 @@ public class ContentServer {
                     System.exit(1);
                 }
             }
-
             if (sentReq == false && socket != null) {
                 Http.getRequest(bufferedWriter, clock);
             }
 
             response = handleLamportClock(bufferedReader, body);
-
-
             Http.read(bufferedWriter, bufferedReader);
         } catch (IOException e){
             System.out.println("Connection to aggregation server was not established or lost...");
