@@ -1113,3 +1113,176 @@ StationId: 1 is alive
 Oct. 13, 2023 3:42:16 AM AggregationServer$1 run
 INFO: Weather data has been saved...
 
+Oct. 13, 2023 3:42:21 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:42:24 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
+Oct. 13, 2023 3:42:26 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:42:26 AM AggregationServer$2 run
+INFO: Checking if heartbeat has been recieved for all weather stations...
+
+Oct. 13, 2023 3:42:36 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:42:36 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:42:39 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
+Oct. 13, 2023 3:42:46 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:42:51 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:42:54 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
+Oct. 13, 2023 3:42:56 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:42:56 AM AggregationServer$2 run
+INFO: Checking if heartbeat has been recieved for all weather stations...
+
+Oct. 13, 2023 3:43:06 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:43:06 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:43:09 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
+Oct. 13, 2023 3:43:16 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:43:21 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:43:24 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
+Oct. 13, 2023 3:43:26 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:43:26 AM AggregationServer$2 run
+INFO: Checking if heartbeat has been recieved for all weather stations...
+
+Oct. 13, 2023 3:43:36 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:43:37 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:43:39 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
+Oct. 13, 2023 3:43:46 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:43:52 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:43:55 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
+Oct. 13, 2023 3:43:56 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:43:56 AM AggregationServer$2 run
+INFO: Checking if heartbeat has been recieved for all weather stations...
+
+Oct. 13, 2023 3:44:06 AM AggregationServer$1 run
+INFO: Weather data has been saved...
+
+Oct. 13, 2023 3:44:07 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 26
+
+StationId: 350239 is alive
+
+Oct. 13, 2023 3:44:10 AM AggregationServer handlePostReq
+INFO: POST request has been received...
+POST / HTTP/1.1
+Content-Type: text/plain
+Content-Length: 21
+
+StationId: 1 is alive
+
