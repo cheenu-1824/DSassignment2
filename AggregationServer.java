@@ -574,7 +574,7 @@ public class AggregationServer {
      * @param args Command-line arguments. Optionally choose the port for the server.
      */
     public static void main(String[] args) {
-        int maxClients = 10;
+        int maxClients = 15;
         int port = 4567;
         logger.setLevel(Level.INFO);
 

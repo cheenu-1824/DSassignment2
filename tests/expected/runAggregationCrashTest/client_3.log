@@ -1,0 +1,53 @@
+HTTP/1.1 200 OK
+Lamport-Clock: 1
+
+HTTP/1.1 200 OK
+Content-Length: 720
+
+{"id":"IDS12345","name":"New York City","state":"NY","time_zone":"EST","lat":40.7128,"lon":-74.006,"local_date_time":"15/04:30pm","local_date_time_full":"20230715163000","air_temp":21.5,"apparent_t":19.8,"cloud":"Partly cloudy","dewpt":15.2,"press":1015.7,"rel_hum":55,"wind_dir":"W","wind_spd_kmh":10,"wind_spd_kt":5,"updateValue":0,"stationId":25}
+{"id":"IDS60901","name":"Adelaide (West Terrace /  ngayirdapira)","state":"SA","time_zone":"CST","lat":-34.9,"lon":138.6,"local_date_time":"15/04:00pm","local_date_time_full":"20230715160000","air_temp":13.3,"apparent_t":9.5,"cloud":"Partly cloudy","dewpt":5.7,"press":1023.9,"rel_hum":60,"wind_dir":"S","wind_spd_kmh":15,"wind_spd_kt":8,"updateValue":0,"stationId":25}
+
+
+<=====WEATHER FEED=====>
+
+ID: IDS12345
+Name: New York City
+State: NY
+Time Zone: EST
+Latitude: 40.7128
+Longitude: -74.006
+Local Date Time: 15/04:30pm
+Local Date Time Full: 20230715163000
+Air Temperature: 21.5
+Apparent Temperature: 19.8
+Cloud: Partly cloudy
+Dew Point: 15.2
+Pressure: 1015.7
+Relative Humidity: 55
+Wind Direction: W
+Wind Speed (km/h): 10
+Wind Speed (kt): 5
+
+<======================>
+
+ID: IDS60901
+Name: Adelaide (West Terrace /  ngayirdapira)
+State: SA
+Time Zone: CST
+Latitude: -34.9
+Longitude: 138.6
+Local Date Time: 15/04:00pm
+Local Date Time Full: 20230715160000
+Air Temperature: 13.3
+Apparent Temperature: 9.5
+Cloud: Partly cloudy
+Dew Point: 5.7
+Pressure: 1023.9
+Relative Humidity: 60
+Wind Direction: S
+Wind Speed (km/h): 15
+Wind Speed (kt): 8
+
+<======================>
+
+Request was handled sucessfully...

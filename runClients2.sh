@@ -16,7 +16,6 @@ java -classpath "$CP" ContentServer http://localhost:4567 content/test.txt 1 &
 contentServerPID=$!
 sleep 2
 
-# Array to store the log file names for each client
 log_files=()
 
 for ((i = 1; i <= numClients; i++)); do
@@ -41,7 +40,6 @@ sleep 12
 kill "$aggregationServerPID"
 kill "$contentServerPID"
 
-# Display the contents of the log files in order
 for log_file in "${log_files[@]}"; do
     cat "$log_file"
 done

@@ -1,5 +1,5 @@
 HTTP/1.1 200 OK
-Lamport-Clock: 11
+Lamport-Clock: 7
 
 HTTP/1.1 200 OK
 Content-Length: 362

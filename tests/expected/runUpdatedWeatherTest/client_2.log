@@ -1,0 +1,32 @@
+HTTP/1.1 200 OK
+Lamport-Clock: 10
+
+HTTP/1.1 200 OK
+Content-Length: 351
+
+{"id":"IDS12345","name":"New York City","state":"NY","time_zone":"EST","lat":40.7128,"lon":-74.006,"local_date_time":"20/10:00am","local_date_time_full":"20231020100000","air_temp":14.2,"apparent_t":12.8,"cloud":"Partly cloudy","dewpt":8.9,"press":1012.3,"rel_hum":57,"wind_dir":"NW","wind_spd_kmh":12,"wind_spd_kt":6,"updateValue":0,"stationId":150}
+
+
+<=====WEATHER FEED=====>
+
+ID: IDS12345
+Name: New York City
+State: NY
+Time Zone: EST
+Latitude: 40.7128
+Longitude: -74.006
+Local Date Time: 20/10:00am
+Local Date Time Full: 20231020100000
+Air Temperature: 14.2
+Apparent Temperature: 12.8
+Cloud: Partly cloudy
+Dew Point: 8.9
+Pressure: 1012.3
+Relative Humidity: 57
+Wind Direction: NW
+Wind Speed (km/h): 12
+Wind Speed (kt): 6
+
+<======================>
+
+Request was handled sucessfully...

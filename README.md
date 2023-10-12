@@ -31,6 +31,10 @@ MAKE THESE AUTOMATIC TESTS NOT TOO HARD ACTUALLY LOL
 2. Then run the command: `java -cp './lib/*:./' ContentServer <domain>:<port> <file location> <stationId>` where the field stationId is the stationId of the content server that has been shutdown.
 
 ## How to Run Tests
+- *NOTE*
+- All outputs from automatic shell script tests will go to tests/outputs/<testname>.
+- All expected ouputs for the respective test will go to tests/outputs/<testname>.
+- You may need to run the command `chmod +x <shell-filename>` to give permission to run the bash script.
 
 ### How to run automatic Unit/Integration tests
 1. In a terminal, run the command: `java -cp './lib/*:./' Tests`. This will start up the testing menu for these test.

@@ -1,17 +1,17 @@
-id: IDS12345
-name: New York City
-state: NY
-time_zone: EST
-lat: 40.7128
-lon: -74.0060
-local_date_time: 20/10:00am
-local_date_time_full: 20231020100000
-air_temp: 14.2
-apparent_t: 12.8
-cloud: Partly cloudy
-dewpt: 8.9
-press: 1012.3
-rel_hum: 57
-wind_dir: NW
-wind_spd_kmh: 12
-wind_spd_kt: 6
+id:IDS12345
+name:New York City
+state:NY
+time_zone:EST
+lat:40.7128
+lon:-74.0060
+local_date_time:20/10:00am
+local_date_time_full:20231020100000
+air_temp:14.2
+apparent_t:12.8
+cloud:Partly cloudy
+dewpt:8.9
+press:1012.3
+rel_hum:57
+wind_dir:NW
+wind_spd_kmh:12
+wind_spd_kt:6

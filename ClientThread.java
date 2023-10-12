@@ -26,7 +26,7 @@ public class ClientThread implements Runnable{
      */
     public void run() {
 
-        int maxClients = 10;
+        int maxClients = 15;
 
         try {
 
