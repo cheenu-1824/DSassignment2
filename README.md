@@ -2,21 +2,15 @@
 
 This README file describes the architecture of the system and provides steps to run the program as intended.
 
-## Calculator Server Architecture
-
-
 ## How to Run the Weather Feed Service
 
 ### Initial Commands for All Cases
 - Make sure to run the command: `make` to build the required files for running the client and server.
-- You should see the following output: "javac -cp "lib/gson-2.10.1.jar" AggregationServer.java ClientThread.java ContentServer.java GETClient.java LamportClock.java WeatherObject.java", which indicates that the code has been successfully compiled. 
+- You should see the following output: `javac -cp "lib/*:./" AggregationServer.java ClientThread.java ContentServer.java GETClient.java Tests.java`, which indicates that the code has been successfully compiled. 
 - `java -cp './lib/*:./' AggregationServer <port>` starts an Aggregation Server on the specified port. *specifiying port is not necessary*
 - `java -cp './lib/*:./' ContentServer <domain>:<port> <file location> <stationId>` Starts a Content Server to connect to given url, use weather data in content folder to upload to server and optionally add a stationId to simulate a crashed station re connection to server.
 - `java -cp './lib/*:./' GETClient http://<domain>:<port>` GETClient connects to url to retrive weather feed.
-
-SDAHKDBAHJSBDHJASBHJDBAJKBDJKASBJKDBNJKAS fix the above when make is fixed
-
-
+- You should use the URL `http://localhost:4567` for testing!
 
 ### How to play with a simple GETClient-Aggregation Server interaction with a weather entries from a single Content Server
 1. Open three terminals in the same main directory to simulate three different virtual machines (VMs).
@@ -77,63 +71,3 @@ What the Script is doing!
 1. Open two terminals in the same main directory to simulate two different virtual machines (VMs).
 2. Run the Aggregation Server and run a ContentServer with one of the `testInvalidX.txt` files. *X is a number from 1-3* 
 3. To test if the Content Server correctly handles invalid weather entries, the Content Server should not send these weather entries to the Aggergation Server. Instead, it should exit gracefully with the error `Error: No valid weather data found from the input file...`.
-
-### How to test the heartbeat of the Content Server
-1. Run a simple GETClient-Aggregation Server interaction stated above.
-2. Both, console of Content Server and logs of Aggregation Server will show when a heartbeat is sent and received, hence, visually check if both are occuring.
-3. Check timestamp on logs on Aggregation Server and weather.json file to see if to check if the heartbeat is sent within the 30 second window to ensure that weather entries are not removed for no reason.
-
-
-### How to perform a test of storing correctly updated and alive weather entries on the Aggregation Server
-1. Open four terminals in the same main directory to simulate different virtual machines (VMs).
-2. Run the Aggregation Server and run a ContentServer with any test file (unchanged version).
-3. After some time (around 15 seconds), begin another ContentServer with the changed version of the already running test file.
-4. Stop the intial Content Server by the shortcut: `Crtl + C` and observe (arround 30 seconds) the weather.json file and logs on of the Aggregation Server. *You should see the new values enter on the weather.json file and Logs indicating that outdated weather entries have been removed. When this happens, the new values should only be left in the weather.json file*
-
-
-
-### How to perform a stress test on the Aggregation Server
-1. Open ten terminals in the same main directory to simulate different virtual machines (VMs).
-2. Change the maxClients value in the main() of AggregationServer.java and run() of ClientThread.java to 1.
-3. Run the Aggregation Server and run 8 different Content Servers with different test files.
-4. Attempt to run a GETClient onces or multiple times to check if the server is still stable and able to still handle requests.
-5. Instead of repeatedily running a single GETClient, you may also test this with multiple simultaneous clients using any parallel clients driver.
-4. To specifically test the ability for ContentServer to retry connection with the server, reduce the maxClients value in the main() of AggregationServer.java and run() of ClientThread.java to 1.
-
-
-
-
-
-
-
-
-How to compile:
-
-make
-
-How to run Content Server:
-
-java -cp './lib/*:./' ContentServer localhost:4567 content/test.txt
-
-How to run Aggregation Server:
-
-java -cp './lib/*:./' AggregationServer
-
-How to run GET Client:
-
-java -cp './lib/*:./' GETClient localhost:4567
-
-How Lamport clock will be employed:
-Will be implemented by creating a class to manage timestamps. 
-Will use lamport clock to synchronise the requests by using the timestamps sent through the request.
-
-How testing will be employed:
-
-Unit testing:
-- Test function using console/can make automated by creating test functions.
-
-Integration testing:
-- Create a test function which creates intances of different classes and communicates information through the system and compares with expected output.
-
-Stress Testing:
-- use a shell script to run multiple clients simuletanously
